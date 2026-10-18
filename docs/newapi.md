@@ -41,7 +41,7 @@ NewAPI https://newapi.franj2.top/v1
 ```powershell
 $env:AIBOX_LLM_BASE_URL="https://newapi.franj2.top/v1"
 $env:AIBOX_LLM_API_KEY="<NewAPI Token>"
-$env:AIBOX_LLM_MODEL="mimo-v2.6-flash-free"
+$env:AIBOX_LLM_MODEL="<NewAPI Model ID>"
 ```
 
 重启 AIBox 后：
@@ -57,7 +57,7 @@ GET /api/llm/status
 ```bash
 curl http://127.0.0.1:8765/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -d '{"model":"mimo-v2.6-flash-free","messages":[{"role":"user","content":"你好"}]}'
+  -d '{"model":"<NewAPI Model ID>","messages":[{"role":"user","content":"你好"}]}'
 ```
 
 AIBox 会把请求转发给 NewAPI；模型名、错误与用量由 NewAPI 返回。

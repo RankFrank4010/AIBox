@@ -87,7 +87,7 @@ NewAPI 是兼容 OpenAI 的模型网关，可以直接作为外部服务：
 ```powershell
 $env:AIBOX_LLM_BASE_URL="https://newapi.franj2.top/v1"
 $env:AIBOX_LLM_API_KEY="<NewAPI Token>"
-$env:AIBOX_LLM_MODEL="mimo-v2.6-flash-free"
+$env:AIBOX_LLM_MODEL="<NewAPI Model ID>"
 ```
 
 四号服务器的部署、模型池和双向接入方式见 [与 NewAPI 结合](newapi.md)。

@@ -339,7 +339,7 @@ AIBox 可以直接把 NewAPI 作为外部 OpenAI 兼容服务：
 ```powershell
 $env:AIBOX_LLM_BASE_URL="https://newapi.franj2.top/v1"
 $env:AIBOX_LLM_API_KEY="<NewAPI Token>"
-$env:AIBOX_LLM_MODEL="mimo-v2.6-flash-free"
+$env:AIBOX_LLM_MODEL="<NewAPI Model ID>"
 ```
 
 语言模型页会读取 NewAPI `/v1/models` 的模型列表。四号服务器 NewAPI 的部署、双向接入与当前渠道状态见 [与 NewAPI 结合](docs/newapi.md)。
