@@ -6,7 +6,7 @@
 
 ```text
 python -m ruff check services/api        → All checks passed
-python -m pytest services/api/tests -q   → 38 passed
+python -m pytest services/api/tests -q   → 40 passed
 ```
 
 Windows 上测试进程偶发 `0xC0000005`（Python / 原生库退出阶段，堆栈落在 GC 或 pytest 源码读取），重跑即可通过；服务进程本身持续运行无异常。
@@ -115,6 +115,13 @@ container: 1Panel-new-api-0Vsg
 - 单卡环境自动退化为单设备；
 - 真实双卡机器未在本机验证；调度、命令生成与 API 流程已测试。
 
+## 模型微调实测
+
+- `AIBOX_DEMO_TRAINING=1` 下数据集上传、校验、任务、进度、日志、取消、产物、删除；
+- JSONL 数据集含 UTF-8 BOM 时可正常读取；
+- WebUI 上传数据集、创建 QLoRA 任务、日志与产物展示通过；
+- 真实 Transformers / PEFT / DeepSpeed 训练未在本机运行；外部命令与演示路径已实现。
+
 ## 外部传输端到端
 
 在本机启动 HTTP/WS/gRPC/MRCP 服务后实测：
@@ -167,13 +174,13 @@ Whisper Small · NVIDIA CUDA · float16
 ```text
 pnpm --filter @aibox/web typecheck   → 通过
 pnpm --filter @aibox/web test        → 4 passed
-pnpm --filter @aibox/web build       → 通过（约 787 KB JS / 215 KB gzip）
+pnpm --filter @aibox/web build       → 通过（约 802 KB JS / 219 KB gzip）
 pnpm --filter @aibox/web build:desktop → 通过
 ```
 
 Playwright 页面检查：
 
-- 14 个桌面页面状态 + 11 个移动端页面：总览、模型库、社区适配、转写、转写结果（查询参数）、语音合成、语言模型、图像生成、视频生成、人声分离、硬件、服务接入、路线图、设置；
+- 15 个桌面页面状态 + 12 个移动端页面：总览、模型库、社区适配、转写、转写结果（查询参数）、语音合成、语言模型、模型微调、图像生成、视频生成、人声分离、硬件、服务接入、路线图、设置；
 - 1440px 与 390px 两套视口；
 - `document.body.scrollWidth == innerWidth`，无水平溢出；
 - 0 个 console error / pageerror；

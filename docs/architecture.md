@@ -141,6 +141,16 @@ TTS 模型目录支持递归下载（IndexTTS 的 `qwen0.6bemo4-merge/` 子目�
 
 详见 [多设备与并行推理](parallel.md)。
 
+## 模型微调
+
+`TrainingStore` 保存数据集元数据、训练任务、进度、日志与产物清单。`TrainingJobs` 串行执行：
+
+- `demo`：模拟阶段并生成占位适配器 / 摘要；
+- `command`：通过 `AIBOX_TRAIN_COMMAND` 启动外部 Transformers / PEFT / TRL / DeepSpeed 脚本；
+- 产物写入 `<data>/training/runs/<job_id>/`，日志写入 `<data>/training/logs/`。
+
+WebUI 只暴露基础模型、方法、数据集与常用超参；训练细节由外部命令或高级脚本负责。详见 [模型微调](training.md)。
+
 ## 对外传输
 
 `ExternalAsrGateway` 是所有外部协议的共享入口：

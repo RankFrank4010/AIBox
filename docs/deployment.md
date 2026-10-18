@@ -138,6 +138,16 @@ AIBOX_LLM_MODEL=qwen2.5:7b
 
 `AIBOX_DEMO_LLM=1` 可用于 UI 验证。
 
+### 模型微调
+
+训练运行在外部命令中：
+
+```bash
+AIBOX_TRAIN_COMMAND="/opt/train-venv/bin/python /opt/train/finetune.py --base {base_model} --data {dataset} --out {output_dir} --method {method} --epochs {epochs} --parallel {parallel}"
+```
+
+或使用 `AIBOX_DEMO_TRAINING=1` 演示。数据集与产物写入 `/data/training`。
+
 前置条件：
 
 - Docker 24+ 与 Compose v2；

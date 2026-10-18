@@ -24,6 +24,7 @@ AIBox 把模型下载、硬件探测、推理后端和生成工作流放进同�
 - **多种加载**：已安装模型可在转写 / 合成页即时切换；ASR 与 TTS 可同时驻留，弹性调度按显存 / 内存与需求换入换出。
 - **弹性模式**：自动、均衡、ASR 优先、TTS 优先、时间片、自定义；可配置空闲卸载、切换窗口、常驻上限、显存 / 内存预留与固定驻留类型。
 - **多设备与并行**：设备池、ASR 数据并行、llama.cpp 张量 / 流水切分；支持 `auto` / `single` / `data` / `tensor` / `pipeline` / `hybrid` 策略。
+- **模型微调管理**：数据集上传校验、QLoRA / LoRA / 全量微调任务、训练日志、取消与产物下载；真实训练通过外部命令或演示运行器。
 - **社区适配**：声明式 `openai-http` / `command` 适配器，覆盖 FunASR、Moonshine、Piper、Kokoro、CosyVoice、F5-TTS、GPT-SoVITS、Fish Speech 等主流模型；内置 16 个配方模板，导入后默认停用。
 - **真实推理**：faster-whisper + CTranslate2（CPU / CUDA）；IndexTTS 通过独立 Python worker 加载，避免依赖冲突。
 - **转写工作台**：拖放音频、自动语言检测、VAD、beam size、词级时间戳、实时进度、取消任务。
@@ -69,6 +70,10 @@ AIBox 把模型下载、硬件探测、推理后端和生成工作流放进同�
 | 语言模型 |
 | --- |
 | ![语言模型](screenshots/chat-result.png) |
+
+| 模型微调 |
+| --- |
+| ![模型微调](screenshots/training-result.png) |
 
 | 社区适配 |
 | --- |
@@ -364,6 +369,17 @@ $env:AIBOX_LLM_MODEL="<NewAPI Model ID>"
 
 详见 [多设备与并行推理](docs/parallel.md)。
 
+### 模型微调
+
+新增「模型微调」页面，用于：
+
+- 上传 JSONL / JSON / CSV 数据集并校验；
+- 创建 QLoRA / LoRA / 全量微调任务；
+- 选择基础模型、设备与 DDP / FSDP / DeepSpeed 并行语义；
+- 查看进度、训练日志、取消任务、下载产物。
+
+真实训练由 `AIBOX_TRAIN_COMMAND` 外部命令执行；`AIBOX_DEMO_TRAINING=1` 用于 UI 与 CI 演示。详见 [模型微调](docs/training.md)。
+
 ## 社区适配
 
 AIBox 不要求所有模型都内置运行时。社区可以用声明式 manifest 把特殊模型接进来：
@@ -453,6 +469,8 @@ ASR 与 TTS 可以同时驻留；当显存 / 内存预算不足时，运行时�
 | `AIBOX_LLM_MODEL` | `qwen3-8b` | 外部服务默认模型 ID |
 | `AIBOX_LLM_GPU_LAYERS` | `99` | llama-server GPU 卸载层数 |
 | `AIBOX_LLM_CONTEXT` | `8192` | llama-server 上下文长度 |
+| `AIBOX_DEMO_TRAINING` | `0` | 微调演示运行器 |
+| `AIBOX_TRAIN_COMMAND` | 空 | 外部训练命令模板 |
 | `AIBOX_ADAPTERS_DIR` | `<data>/adapters` | 社区适配器目录 |
 | `AIBOX_ALLOW_ADAPTER_COMMANDS` | `0` | 允许 command 适配器执行本机进程 |
 | `AIBOX_ALLOW_REMOTE_ADAPTERS` | `0` | 允许远程 HTTP 适配器；默认仅 localhost / 局域网 |
@@ -511,6 +529,7 @@ ASR 与 TTS 可以同时驻留；当显存 / 内存预算不足时，运行时�
 - `GET /api/images/status` · `POST /api/images/generations` · `GET/DELETE /api/images/generations/{id}`
 - `GET /api/separations/status` · `POST /api/separations` · `GET/DELETE /api/separations/{id}`
 - `GET /api/videos/status` · `POST /api/videos` · `GET/DELETE /api/videos/{id}`
+- `GET /api/training/status` · `POST /api/training/datasets` · `POST /api/training/jobs`
 - `POST /v1/chat/completions`（流式 / 非流式）· `GET /api/llm/status` · `POST /api/llm/chat`
 - `GET /api/tts/status` · `GET/POST /api/tts/voices` · `POST /api/tts/synthesize`
 - `POST /v1/audio/transcriptions` · `POST /v1/audio/speech` · `POST /v1/images/generations` · `GET /v1/models`

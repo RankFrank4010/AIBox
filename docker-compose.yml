@@ -42,6 +42,8 @@ services:
       # AIBOX_LLM_MODEL: qwen3-8b
       # AIBOX_LLM_CONTEXT: "8192"
       # AIBOX_LLM_GPU_LAYERS: "99"
+      # AIBOX_DEMO_TRAINING: "1"
+      # AIBOX_TRAIN_COMMAND: /opt/train-venv/bin/python /opt/train/finetune.py --base {base_model} --data {dataset} --out {output_dir}
       # HF_TOKEN: ${HF_TOKEN:-}
       # AIBOX_HF_ENDPOINT: https://hf-mirror.com
     restart: unless-stopped

@@ -1,0 +1,3 @@
+{"messages":[{"role":"user","content":"你好"},{"role":"assistant","content":"你好，我是 AIBox 助手。"}]}
+{"messages":[{"role":"user","content":"介绍一下 LoRA"},{"role":"assistant","content":"LoRA 是一种低秩适配微调方法。"}]}
+{"messages":[{"role":"user","content":"如何导出模型？"},{"role":"assistant","content":"训练完成后在产物中下载适配器。"}]}

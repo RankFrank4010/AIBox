@@ -290,6 +290,44 @@ POST /api/devices/refresh
 
 策略与限制见 [多设备与并行推理](parallel.md)。
 
+## 模型微调
+
+```http
+GET  /api/training/status
+GET  /api/training/datasets
+POST /api/training/datasets          (multipart: file, name)
+DELETE /api/training/datasets/{id}
+GET  /api/training/jobs
+POST /api/training/jobs
+GET  /api/training/jobs/{id}
+POST /api/training/jobs/{id}/cancel
+DELETE /api/training/jobs/{id}
+GET  /api/training/jobs/{id}/logs
+GET  /api/training/artifacts/{job_id}/{file}
+```
+
+任务示例：
+
+```json
+{
+  "name": "qwen-lora",
+  "base_model": "Qwen/Qwen3-8B",
+  "method": "qlora",
+  "dataset_id": "ds_xxx",
+  "epochs": 3,
+  "batch_size": 1,
+  "grad_accum": 8,
+  "learning_rate": 0.0002,
+  "max_seq": 2048,
+  "lora_r": 16,
+  "lora_alpha": 32,
+  "device": "cuda:0",
+  "parallel_strategy": "single"
+}
+```
+
+真实训练由 `AIBOX_TRAIN_COMMAND` 执行；`AIBOX_DEMO_TRAINING=1` 为演示运行器。详见 [模型微调](training.md)。
+
 ## 健康检查
 
 ```http
