@@ -30,7 +30,7 @@ def _send(payload: dict) -> None:
     _PROTOCOL.flush()
 
 
-def load_pipeline(model_dir: str, pipeline: str):
+def load_pipeline(model_dir: str, pipeline: str, device: str = "auto"):
     import torch
     from diffusers import DiffusionPipeline
 
@@ -57,8 +57,12 @@ def load_pipeline(model_dir: str, pipeline: str):
         torch_dtype=dtype,
         local_files_only=True,
     )
-    if torch.cuda.is_available():
-        pipe.to("cuda")
+    target = "cpu"
+    if torch.cuda.is_available() and device != "cpu":
+        target = device if device.startswith("cuda:") else "cuda"
+        if target.startswith("cuda:"):
+            torch.cuda.set_device(int(target.split(":", 1)[1]))
+    pipe.to(target)
     if hasattr(pipe, "set_progress_bar_config"):
         pipe.set_progress_bar_config(disable=True)
     return pipe
@@ -111,9 +115,10 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-dir", required=True)
     parser.add_argument("--pipeline", default="")
+    parser.add_argument("--device", default="auto")
     args = parser.parse_args()
     try:
-        pipe = load_pipeline(args.model_dir, args.pipeline)
+        pipe = load_pipeline(args.model_dir, args.pipeline, args.device)
         _send({"type": "ready", "pipeline": args.pipeline})
     except Exception as exc:
         traceback.print_exc()

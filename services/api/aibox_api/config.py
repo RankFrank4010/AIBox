@@ -54,6 +54,13 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "llm_temperature": 0.7,
     "llm_max_tokens": 1024,
     "llm_system_prompt": "你是 AIBox 的本地 AI 助手，回答准确、简洁。",
+    "parallel_strategy": "auto",
+    "parallel_devices": [],
+    "parallel_workers": 2,
+    "asr_device": "auto",
+    "tts_device": "auto",
+    "image_device": "auto",
+    "llm_device": "auto",
     "language": "auto",
     "task": "transcribe",
     "device": "auto",
@@ -134,6 +141,28 @@ def _coerce_settings(raw: dict[str, Any]) -> dict[str, Any]:
         settings["llm_max_tokens"] = 1024
     if not isinstance(settings.get("llm_system_prompt"), str):
         settings["llm_system_prompt"] = "你是 AIBox 的本地 AI 助手，回答准确、简洁。"
+    if settings.get("parallel_strategy") not in {
+        "auto",
+        "single",
+        "data",
+        "tensor",
+        "pipeline",
+        "hybrid",
+    }:
+        settings["parallel_strategy"] = "auto"
+    try:
+        settings["parallel_workers"] = max(1, min(16, int(settings.get("parallel_workers") or 2)))
+    except (TypeError, ValueError):
+        settings["parallel_workers"] = 2
+    if not isinstance(settings.get("parallel_devices"), list):
+        settings["parallel_devices"] = []
+    else:
+        settings["parallel_devices"] = [
+            str(item) for item in settings["parallel_devices"] if isinstance(item, str)
+        ][:16]
+    for key in ("asr_device", "tts_device", "image_device", "llm_device"):
+        if not isinstance(settings.get(key), str) or not settings[key]:
+            settings[key] = "auto"
     if settings["elastic_mode"] not in {
         "auto",
         "balanced",

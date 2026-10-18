@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import shutil
 import socket
 import subprocess
@@ -34,9 +35,15 @@ class LLMUnavailable(RuntimeError):
 
 
 class LLMEngine:
-    def __init__(self, config: AppConfig, runtime: RuntimeManager | None = None) -> None:
+    def __init__(
+        self,
+        config: AppConfig,
+        runtime: RuntimeManager | None = None,
+        scheduler: Any | None = None,
+    ) -> None:
         self.config = config
         self.runtime = runtime
+        self.scheduler = scheduler
         self._lock = threading.RLock()
         self._server: subprocess.Popen[bytes] | None = None
         self._server_port: int | None = None
@@ -92,6 +99,9 @@ class LLMEngine:
             "loaded_model": self._server_model,
             "server_port": self._server_port,
             "context": self.config.llm_context,
+            "parallel": (
+                self.scheduler.llm_runtime_config() if self.scheduler else None
+            ),
         }
 
     # ----------------------------------------------------------------- models
@@ -329,6 +339,13 @@ class LLMEngine:
                     raise LLMUnavailable(str(exc)) from exc
             port = _free_port()
             context = max(512, min(131072, int(spec.context_length or self.config.llm_context)))
+            parallel = self.scheduler.llm_runtime_config() if self.scheduler else {
+                "strategy": "single",
+                "cuda_indices": [],
+                "split_mode": "none",
+                "tensor_split": [],
+                "parallel": 1,
+            }
             command = [
                 binary,
                 "-m",
@@ -342,8 +359,21 @@ class LLMEngine:
                 "--n-gpu-layers",
                 str(self.config.llm_gpu_layers),
                 "--parallel",
-                "1",
+                str(max(1, min(8, int(parallel.get("parallel") or 1)))),
             ]
+            cuda_indices = [int(item) for item in parallel.get("cuda_indices") or []]
+            split_mode = str(parallel.get("split_mode") or "none")
+            if len(cuda_indices) > 1 and split_mode in {"row", "layer"}:
+                command += ["--split-mode", split_mode]
+                command += [
+                    "--tensor-split",
+                    ",".join(f"{float(item):g}" for item in parallel.get("tensor_split") or []),
+                ]
+            elif cuda_indices:
+                command += ["--main-gpu", "0"]
+            env = dict(os.environ)
+            if cuda_indices:
+                env["CUDA_VISIBLE_DEVICES"] = ",".join(str(item) for item in cuda_indices)
             log_path = self.config.logs_dir / "llama-server.log"
             log_path.parent.mkdir(parents=True, exist_ok=True)
             log = log_path.open("ab")
@@ -353,6 +383,7 @@ class LLMEngine:
                     stdout=log,
                     stderr=subprocess.STDOUT,
                     cwd=str(model_path.parent),
+                    env=env,
                 )
             except OSError as exc:
                 log.close()

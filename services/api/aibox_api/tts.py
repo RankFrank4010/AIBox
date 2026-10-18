@@ -66,10 +66,12 @@ class TtsEngine:
         config: AppConfig,
         runtime: RuntimeManager | None = None,
         community: CommunityRegistry | None = None,
+        scheduler: Any | None = None,
     ) -> None:
         self.config = config
         self.runtime = runtime
         self.community = community
+        self.scheduler = scheduler
         self.voices = VoiceManager(config)
         self._lock = threading.RLock()
         self._inference_lock = threading.Lock()
@@ -318,6 +320,8 @@ class TtsEngine:
                 "--variant",
                 variant,
             ]
+            if self.scheduler:
+                command += ["--device", self.scheduler.devices_for("tts")[0]]
             creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
             try:
                 worker = subprocess.Popen(

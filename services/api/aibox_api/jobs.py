@@ -25,10 +25,12 @@ class TranscriptionJobs:
         store: TranscriptionStore,
         engine: WhisperEngine,
         max_workers: int = 2,
+        scheduler: object | None = None,
     ) -> None:
         self.config = config
         self.store = store
         self.engine = engine
+        self.scheduler = scheduler
         self.executor = ThreadPoolExecutor(
             max_workers=max(1, min(4, max_workers)), thread_name_prefix="aibox-asr"
         )
@@ -103,9 +105,15 @@ class TranscriptionJobs:
             )
             last_write = now
 
+        device = None
         try:
             if event.is_set():
                 raise TranscriptionCancelled("任务已取消")
+            if self.scheduler is not None:
+                requested = str(options.get("device") or "auto")
+                if requested in {"auto", "cuda"}:
+                    device = self.scheduler.choose("asr")
+                    options = {**options, "device": device}
             self.store.update(
                 transcription_id,
                 status="running",
@@ -173,6 +181,8 @@ class TranscriptionJobs:
             with self._lock:
                 self._events.pop(transcription_id, None)
                 self._models.pop(transcription_id, None)
+            if device is not None and self.scheduler is not None:
+                self.scheduler.release(device)
             if not self.config.settings().get("keep_audio", True):
                 try:
                     audio_path.unlink(missing_ok=True)

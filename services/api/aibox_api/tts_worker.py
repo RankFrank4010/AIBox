@@ -33,14 +33,16 @@ def _send(payload: dict) -> None:
     _PROTOCOL.flush()
 
 
-def load_model(repo: str, model_dir: str, variant: str):
+def load_model(repo: str, model_dir: str, variant: str, device: str = "auto"):
     repo_path = str(Path(repo).resolve())
     if repo_path not in sys.path:
         sys.path.insert(0, repo_path)
     try:
         import torch
 
-        use_cuda = torch.cuda.is_available()
+        use_cuda = torch.cuda.is_available() and device != "cpu"
+        if use_cuda and device.startswith("cuda:"):
+            torch.cuda.set_device(int(device.split(":", 1)[1]))
     except Exception:
         use_cuda = False
     cfg = str(Path(model_dir) / "config.yaml")
@@ -95,10 +97,11 @@ def main() -> int:
     parser.add_argument("--repo", required=True)
     parser.add_argument("--model-dir", required=True)
     parser.add_argument("--variant", choices=("2", "2.5"), default="2.5")
+    parser.add_argument("--device", default="auto")
     args = parser.parse_args()
 
     try:
-        tts, variant = load_model(args.repo, args.model_dir, args.variant)
+        tts, variant = load_model(args.repo, args.model_dir, args.variant, args.device)
         _send({"type": "ready", "variant": variant})
     except Exception as exc:
         traceback.print_exc()

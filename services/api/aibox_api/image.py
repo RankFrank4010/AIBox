@@ -139,9 +139,15 @@ class ComfyUIClient:
 
 
 class ImageEngine:
-    def __init__(self, config: AppConfig, runtime: RuntimeManager | None = None) -> None:
+    def __init__(
+        self,
+        config: AppConfig,
+        runtime: RuntimeManager | None = None,
+        scheduler: Any | None = None,
+    ) -> None:
         self.config = config
         self.runtime = runtime
+        self.scheduler = scheduler
         self._lock = threading.RLock()
         self._worker: subprocess.Popen[str] | None = None
         self._worker_model_id: str | None = None
@@ -561,6 +567,8 @@ class ImageEngine:
                 "--pipeline",
                 pipeline,
             ]
+            if self.scheduler:
+                command += ["--device", self.scheduler.devices_for("image")[0]]
             creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
             try:
                 worker = subprocess.Popen(

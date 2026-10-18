@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from .asr import WhisperEngine, engine_available
+from .asr import AsrPool, WhisperEngine, engine_available
 from .catalog import (
     get_model,
     model_catalog,
@@ -29,6 +29,7 @@ from .catalog import (
 )
 from .community import CommunityRegistry
 from .config import APP_NAME, APP_VERSION, AppConfig, get_config
+from .devices import DeviceScheduler
 from .downloads import DownloadError, DownloadManager
 from .external import AUDIO_EXTENSIONS, ExternalAsrGateway, ExternalServiceError
 from .hardware import collect_hardware, invalidate_hardware_cache
@@ -81,11 +82,17 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     downloads = DownloadManager(cfg)
     community = CommunityRegistry(cfg)
     runtime = RuntimeManager(cfg)
-    engine = WhisperEngine(cfg, runtime, community)
-    tts_engine = TtsEngine(cfg, runtime, community)
-    image_engine = ImageEngine(cfg, runtime)
+    scheduler = DeviceScheduler(cfg)
+    engine: Any = WhisperEngine(cfg, runtime, community)
+    if (
+        str(cfg.settings().get("parallel_strategy") or "auto") == "data"
+        and len(scheduler.selected_devices()) > 1
+    ):
+        engine = AsrPool(cfg, runtime, community, scheduler)
+    tts_engine = TtsEngine(cfg, runtime, community, scheduler)
+    image_engine = ImageEngine(cfg, runtime, scheduler)
     image_jobs = ImageJobs(cfg, image_store, image_engine)
-    llm_engine = LLMEngine(cfg, runtime)
+    llm_engine = LLMEngine(cfg, runtime, scheduler)
     separation_engine = SeparationEngine(cfg)
     separation_jobs = SeparationJobs(cfg, separation_store, separation_engine)
     video_engine = VideoEngine(cfg)
@@ -94,7 +101,11 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         cfg,
         store,
         engine,
-        max_workers=int(cfg.settings().get("max_concurrent_jobs") or 2),
+        max_workers=max(
+            int(cfg.settings().get("max_concurrent_jobs") or 2),
+            int(cfg.settings().get("parallel_workers") or 2),
+        ),
+        scheduler=scheduler,
     )
     gateway = ExternalAsrGateway(cfg, store, jobs)
     runtime.register("asr", engine.unload)
@@ -233,6 +244,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     app.state.video = video_engine
     app.state.video_jobs = video_jobs
     app.state.llm = llm_engine
+    app.state.scheduler = scheduler
     app.state.runtime = runtime
     app.state.community = community
     app.state.jobs = jobs
@@ -299,6 +311,15 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     )
 
     # ------------------------------------------------------------------ health
+    @app.get("/api/devices")
+    def devices() -> dict[str, Any]:
+        return scheduler.status()
+
+    @app.post("/api/devices/refresh")
+    def refresh_devices() -> dict[str, Any]:
+        scheduler.refresh()
+        return scheduler.status()
+
     @app.get("/api/health")
     def health() -> dict[str, Any]:
         settings = cfg.settings()
@@ -319,6 +340,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             "separation": separation_engine.status(),
             "video": video_engine.status(),
             "llm": llm_engine.status(),
+            "devices": scheduler.status(),
             "runtime": runtime.status(),
             "community": community.list_public()["summary"],
             "settings": settings,
@@ -398,6 +420,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             "separation": separation_engine.status(),
             "video": video_engine.status(),
             "llm": llm_engine.status(),
+            "devices": scheduler.status(),
             "runtime": runtime.status(),
             "community": community.list_public(),
             "settings": cfg.settings(),

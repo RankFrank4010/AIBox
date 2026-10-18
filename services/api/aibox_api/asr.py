@@ -97,7 +97,7 @@ class WhisperEngine:
         self.runtime = runtime
         self.community = community
         self._model: Any = None
-        self._model_key: tuple[str, str, str] | None = None
+        self._model_key: tuple[str, str, str, int | None] | None = None
         self._lock = threading.RLock()
         self._inference_lock = threading.Lock()
         self._active_device: str | None = None
@@ -111,14 +111,22 @@ class WhisperEngine:
             "path": self._model_key[0],
             "model_id": Path(self._model_key[0]).name,
             "device": self._active_device,
-            "compute_type": self._active_compute_type,
-        }
+            "compute_type": self._active_compute_type,        }
 
     def _resolve_backend(
         self, device: str, compute_type: str
-    ) -> tuple[str, str, str | None]:
+    ) -> tuple[str, str, str | None, int | None]:
         warning: str | None = None
-        if device == "npu":
+        device_index: int | None = None
+        requested_device = device
+        if device.startswith("cuda"):
+            if ":" in device:
+                try:
+                    device_index = int(device.split(":", 1)[1])
+                except ValueError:
+                    device_index = 0
+            requested_device = "cuda"
+        if requested_device == "npu":
             raise AsrUnavailable(
                 "NPU 加速正在适配中。当前版本请选择自动 / CPU / CUDA；"
                 "驱动与设备已可在系统页查看。"
@@ -126,8 +134,8 @@ class WhisperEngine:
         if device == "metal":
             raise AsrUnavailable("Apple Metal 的 Whisper 后端尚未启用，请选择 CPU 或自动。")
 
-        resolved_device = device
-        if device == "auto":
+        resolved_device = requested_device
+        if requested_device == "auto":
             register_for_process()
             try:
                 import ctranslate2
@@ -154,7 +162,7 @@ class WhisperEngine:
                 if not cuda_runtime_ready():
                     raise RuntimeError("missing cuBLAS / cuDNN")
             except Exception:
-                if device == "auto":
+                if requested_device == "auto":
                     warning = f"{cuda_runtime_hint()} 已回退到 CPU（int8）。"
                     resolved_device = "cpu"
                 else:
@@ -172,7 +180,11 @@ class WhisperEngine:
             resolved_compute = compute_type if compute_type != "auto" else "float16"
             if resolved_compute not in {"float16", "float32", "int8_float16", "int8"}:
                 resolved_compute = "float16"
-        return resolved_device, resolved_compute, warning
+        if resolved_device == "cpu":
+            device_index = None
+        elif device_index is None:
+            device_index = 0
+        return resolved_device, resolved_compute, warning, device_index
 
     def _get_model(
         self,
@@ -182,8 +194,10 @@ class WhisperEngine:
         status: Callable[[str], None] | None = None,
     ) -> tuple[Any, str, str, str | None]:
         with self._lock:
-            resolved_device, resolved_compute, warning = self._resolve_backend(device, compute_type)
-            key = (str(model_path), resolved_device, resolved_compute)
+            resolved_device, resolved_compute, warning, device_index = self._resolve_backend(
+                device, compute_type
+            )
+            key = (str(model_path), resolved_device, resolved_compute, device_index)
             if self._model is not None and self._model_key == key:
                 if self.runtime:
                     self.runtime.mark_used("asr")
@@ -222,19 +236,21 @@ class WhisperEngine:
                     raise AsrUnavailable(str(exc)) from exc
 
             try:
-                model = WhisperModel(
-                    str(model_path),
-                    device=resolved_device,
-                    compute_type=resolved_compute,
-                    cpu_threads=0,
-                    num_workers=1,
-                )
+                model_kwargs: dict[str, Any] = {
+                    "device": resolved_device,
+                    "compute_type": resolved_compute,
+                    "cpu_threads": 0,
+                    "num_workers": 1,
+                }
+                if device_index is not None:
+                    model_kwargs["device_index"] = device_index
+                model = WhisperModel(str(model_path), **model_kwargs)
             except Exception as exc:  # noqa: BLE001
                 if device == "auto" and resolved_device == "cuda":
                     warning = f"CUDA 初始化失败，已回退到 CPU（int8）：{exc}"
                     if status:
                         status("CUDA 初始化失败，正在回退到 CPU")
-                    resolved_device, resolved_compute = "cpu", "int8"
+                    resolved_device, resolved_compute, device_index = "cpu", "int8", None
                     try:
                         model = WhisperModel(
                             str(model_path),
@@ -253,12 +269,15 @@ class WhisperEngine:
                     raise AsrUnavailable(f"模型加载失败：{exc}") from exc
 
             self._model = model
-            self._model_key = (str(model_path), resolved_device, resolved_compute)
-            self._active_device = resolved_device
+            self._model_key = (str(model_path), resolved_device, resolved_compute, device_index)
+            self._active_device = (
+                f"cuda:{device_index}" if resolved_device == "cuda" and device_index is not None
+                else resolved_device
+            )
             self._active_compute_type = resolved_compute
             if self.runtime:
                 self.runtime.commit(reservation)
-            return model, resolved_device, resolved_compute, warning
+            return model, self._active_device or resolved_device, resolved_compute, warning
 
     def unload(self) -> None:
         with self._lock:
@@ -602,3 +621,73 @@ def _is_cjk(char: str) -> bool:
         or 0x3040 <= code <= 0x30FF
         or 0xAC00 <= code <= 0xD7AF
     )
+
+class AsrPool:
+    """Lazy data-parallel Whisper replicas, one model per compute device.
+
+    Used when the selected strategy is ``data`` and more than one accelerator
+    is available. Each replica has its own CTranslate2 model and inference
+    lock, so jobs placed on different devices can decode concurrently.
+    """
+
+    def __init__(
+        self,
+        config: AppConfig,
+        runtime: RuntimeManager | None,
+        community: CommunityRegistry | None,
+        scheduler: Any,
+    ) -> None:
+        self.config = config
+        self.runtime = runtime
+        self.community = community
+        self.scheduler = scheduler
+        self._engines: dict[str, WhisperEngine] = {}
+        self._lock = threading.RLock()
+
+    def _engine(self, device: str) -> WhisperEngine:
+        with self._lock:
+            engine = self._engines.get(device)
+            if engine is None:
+                engine = WhisperEngine(self.config, runtime=None, community=self.community)
+                self._engines[device] = engine
+            return engine
+
+    def transcribe(
+        self,
+        *,
+        audio_path: Path,
+        model_path: Path,
+        options: dict[str, Any],
+        progress: ProgressCallback,
+        cancel_check: CancelCheck,
+    ) -> dict[str, Any]:
+        requested = str(options.get("device") or "auto")
+        leased = False
+        if requested in {"auto", "cuda"}:
+            device = self.scheduler.choose("asr")
+            leased = True
+            options = {**options, "device": device}
+        else:
+            device = requested
+        try:
+            return self._engine(device).transcribe(
+                audio_path=audio_path,
+                model_path=model_path,
+                options=options,
+                progress=progress,
+                cancel_check=cancel_check,
+            )
+        finally:
+            if leased:
+                self.scheduler.release(device)
+
+    def unload(self) -> None:
+        with self._lock:
+            engines = list(self._engines.values())
+            self._engines.clear()
+        for engine in engines:
+            engine.unload()
+
+    @property
+    def is_busy(self) -> bool:
+        return any(engine.is_busy for engine in self._engines.values())
