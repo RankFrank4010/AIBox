@@ -1,0 +1,547 @@
+{
+  "schema_version": 1,
+  "templates": [
+    {
+      "id": "sensevoice-small",
+      "name": "SenseVoice Small",
+      "kind": "asr",
+      "description": "阿里 FunASR 的多语言语音识别模型，中文/粤语/英语/日语/韩语，带情绪与事件标签能力。",
+      "languages": "中 / 英 / 粤 / 日 / 韩",
+      "parameters": "234M",
+      "memory_gb": 2.0,
+      "license": "FunASR License",
+      "source": "FunASR / ModelScope",
+      "homepage": "https://github.com/modelscope/FunASR",
+      "tags": [
+        "FunASR",
+        "多语言",
+        "中文"
+      ],
+      "aliases": [
+        "sensevoice"
+      ],
+      "install": "安装 FunASR，准备 SenseVoiceSmall 权重，并用一段 Python/CLI 脚本把 {audio} 转成 {output} JSON。",
+      "docs": "FunASR 不是 OpenAI 标准 API。推荐写一个 20 行脚本调用 AutoModel，读取 {audio}，写出包含 text/segments 的 JSON。",
+      "adapter_example": {
+        "type": "command",
+        "command": [
+          "python",
+          "<path-to-funasr-runner>.py",
+          "--audio",
+          "{audio}",
+          "--output",
+          "{output}",
+          "--model",
+          "<path-to-SenseVoiceSmall>"
+        ],
+        "output": "json",
+        "timeout_seconds": 900
+      }
+    },
+    {
+      "id": "paraformer-zh",
+      "name": "Paraformer 中文",
+      "kind": "asr",
+      "description": "FunASR 的工业级中文 Paraformer 模型，适合会议、字幕和长音频。",
+      "languages": "中 / 英",
+      "parameters": "220M",
+      "memory_gb": 2.0,
+      "license": "FunASR License",
+      "source": "FunASR / ModelScope",
+      "homepage": "https://github.com/modelscope/FunASR",
+      "tags": [
+        "FunASR",
+        "中文",
+        "长音频"
+      ],
+      "aliases": [
+        "paraformer"
+      ],
+      "install": "安装 FunASR，准备 paraformer-zh 权重，使用脚本输出 {output} JSON。",
+      "docs": "如果已有 FunASR 服务，也可以用 openai-http 适配器对接兼容层。",
+      "adapter_example": {
+        "type": "command",
+        "command": [
+          "python",
+          "<path-to-funasr-runner>.py",
+          "--audio",
+          "{audio}",
+          "--output",
+          "{output}",
+          "--model",
+          "<path-to-paraformer-zh>"
+        ],
+        "output": "json",
+        "timeout_seconds": 900
+      }
+    },
+    {
+      "id": "moonshine-base",
+      "name": "Moonshine Base",
+      "kind": "asr",
+      "description": "Useful Sensors 的轻量英文 ASR，低延迟，适合边缘设备与实时字幕。",
+      "languages": "英语",
+      "parameters": "61M",
+      "memory_gb": 1.0,
+      "license": "MIT",
+      "source": "Moonshine",
+      "homepage": "https://github.com/usefulsensors/moonshine",
+      "tags": [
+        "轻量",
+        "英文",
+        "实时"
+      ],
+      "aliases": [
+        "moonshine"
+      ],
+      "install": "安装 moonshine，或使用 ONNX Runtime 脚本。命令必须输出 {output} JSON。",
+      "docs": "Moonshine 的 Python 包加载模型后调用 transcribe；AIBox 只依赖标准 JSON 输出。",
+      "adapter_example": {
+        "type": "command",
+        "command": [
+          "python",
+          "<path-to-moonshine-runner>.py",
+          "--audio",
+          "{audio}",
+          "--output",
+          "{output}",
+          "--model",
+          "<path-to-moonshine>"
+        ],
+        "output": "json",
+        "timeout_seconds": 900
+      }
+    },
+    {
+      "id": "parakeet-tdt-0.6b-v2",
+      "name": "Parakeet TDT 0.6B v2",
+      "kind": "asr",
+      "description": "NVIDIA NeMo 的高质量英文流式/离线 ASR，适合 GPU 服务器。",
+      "languages": "英语",
+      "parameters": "600M",
+      "memory_gb": 4.0,
+      "license": "CC-BY-4.0",
+      "source": "NVIDIA NeMo",
+      "homepage": "https://huggingface.co/nvidia/parakeet-tdt-0.6b-v2",
+      "tags": [
+        "NVIDIA",
+        "英文",
+        "GPU"
+      ],
+      "aliases": [
+        "parakeet"
+      ],
+      "install": "安装 NeMo 与权重，写脚本调用 ASRModel.transcribe，输出 {output} JSON。",
+      "docs": "NeMo 输出为 hypothesis 列表，转换成 text/segments 后即可接入弹性调度。",
+      "adapter_example": {
+        "type": "command",
+        "command": [
+          "python",
+          "<path-to-nemo-runner>.py",
+          "--audio",
+          "{audio}",
+          "--output",
+          "{output}",
+          "--model",
+          "<path-to-parakeet>"
+        ],
+        "output": "json",
+        "timeout_seconds": 900,
+        "memory_gb": 4
+      }
+    },
+    {
+      "id": "vosk-model-small-cn",
+      "name": "Vosk 中文小模型",
+      "kind": "asr",
+      "description": "离线、轻量的 Vosk 中文模型，CPU 友好，适合低功耗设备和实时命令词。",
+      "languages": "中文",
+      "parameters": "42M",
+      "memory_gb": 0.5,
+      "license": "Apache-2.0",
+      "source": "Vosk",
+      "homepage": "https://alphacephei.com/vosk/",
+      "tags": [
+        "轻量",
+        "CPU",
+        "中文"
+      ],
+      "aliases": [
+        "vosk"
+      ],
+      "install": "安装 vosk Python 包并下载模型；用脚本把识别文本写入 {output} JSON。",
+      "docs": "Vosk 只返回文本与词时间戳，可构造单段或词级 segments。",
+      "adapter_example": {
+        "type": "command",
+        "command": [
+          "python",
+          "<path-to-vosk-runner>.py",
+          "--audio",
+          "{audio}",
+          "--output",
+          "{output}",
+          "--model",
+          "<path-to-vosk-model>"
+        ],
+        "output": "json",
+        "timeout_seconds": 900
+      }
+    },
+    {
+      "id": "qwen3-asr-1.7b",
+      "name": "Qwen3-ASR 1.7B",
+      "kind": "asr",
+      "description": "Qwen 系列多语言语音识别模型，适合中文、英文与多语种转写。",
+      "languages": "多语言",
+      "parameters": "1.7B",
+      "memory_gb": 5.0,
+      "license": "见模型卡",
+      "source": "Qwen",
+      "homepage": "https://huggingface.co/Qwen",
+      "tags": [
+        "Qwen",
+        "多语言",
+        "GPU"
+      ],
+      "aliases": [
+        "qwen-asr"
+      ],
+      "install": "安装 transformers 与 Qwen3-ASR 依赖，使用脚本加载模型并输出 {output} JSON。",
+      "docs": "Qwen3-ASR 的 prompt 格式随版本变化；把模型返回文本/时间戳转换为统一 JSON。",
+      "adapter_example": {
+        "type": "command",
+        "command": [
+          "python",
+          "<path-to-qwen-asr-runner>.py",
+          "--audio",
+          "{audio}",
+          "--output",
+          "{output}",
+          "--model",
+          "<path-to-qwen3-asr>"
+        ],
+        "output": "json",
+        "timeout_seconds": 900,
+        "memory_gb": 5
+      }
+    },
+    {
+      "id": "speaches-whisper",
+      "name": "Speaches / faster-whisper server",
+      "kind": "asr",
+      "description": "通过 Speaches（原 faster-whisper-server）的 OpenAI 兼容接口接入 Whisper。",
+      "languages": "Whisper 全语言",
+      "parameters": "取决于服务端",
+      "memory_gb": 0.0,
+      "license": "MIT",
+      "source": "Speaches",
+      "homepage": "https://github.com/speaches-ai/speaches",
+      "tags": [
+        "OpenAI HTTP",
+        "Whisper",
+        "外部服务"
+      ],
+      "aliases": [
+        "speaches"
+      ],
+      "install": "运行 speaches 容器或服务，默认地址 http://127.0.0.1:8000/v1。",
+      "docs": "AIBox 调用 /audio/transcriptions；服务端模型名填入 model 字段。",
+      "adapter_example": {
+        "type": "openai-http",
+        "base_url": "http://127.0.0.1:8000/v1",
+        "model": "Systran/faster-whisper-small",
+        "timeout_seconds": 900
+      }
+    },
+    {
+      "id": "kokoro-82m",
+      "name": "Kokoro 82M",
+      "kind": "tts",
+      "description": "轻量高质量 TTS，82M 参数，支持多语言与多音色；可通过 OpenAI 兼容服务或本地脚本接入。",
+      "languages": "英语 / 中文等",
+      "parameters": "82M",
+      "memory_gb": 1.0,
+      "license": "Apache-2.0",
+      "source": "Kokoro",
+      "homepage": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "tags": [
+        "轻量",
+        "多音色",
+        "TTS"
+      ],
+      "aliases": [
+        "kokoro"
+      ],
+      "install": "推荐使用 Speaches / Kokoro-FastAPI 暴露 OpenAI /v1/audio/speech，或写脚本输出 {output} WAV。",
+      "docs": "OpenAI HTTP 模式只需填 base_url 与 model；本地脚本模式使用 command + output=wav。",
+      "adapter_example": {
+        "type": "openai-http",
+        "base_url": "http://127.0.0.1:8880/v1",
+        "model": "kokoro",
+        "timeout_seconds": 900
+      }
+    },
+    {
+      "id": "piper-zh-huayan",
+      "name": "Piper 中文 Huayan",
+      "kind": "tts",
+      "description": "Piper ONNX 轻量 TTS，CPU 可实时，适合离线播报与低功耗设备。",
+      "languages": "中文",
+      "parameters": "约 20M",
+      "memory_gb": 0.5,
+      "license": "MIT",
+      "source": "Piper",
+      "homepage": "https://github.com/rhasspy/piper",
+      "tags": [
+        "Piper",
+        "轻量",
+        "CPU",
+        "中文"
+      ],
+      "aliases": [
+        "piper"
+      ],
+      "install": "安装 piper 可执行文件并下载 zh_CN-huayan-medium.onnx。",
+      "docs": "命令从 stdin 读取文本并写 WAV；把 stdin 设为 {text}。参考音色对 Piper 不适用。",
+      "adapter_example": {
+        "type": "command",
+        "command": [
+          "piper",
+          "--model",
+          "<path-to-model>.onnx",
+          "--output_file",
+          "{output}"
+        ],
+        "output": "wav",
+        "timeout_seconds": 900,
+        "stdin": "{text}",
+        "model_dir": "<path-to-piper-model>"
+      }
+    },
+    {
+      "id": "cosyvoice2-0.5b",
+      "name": "CosyVoice2 0.5B",
+      "kind": "tts",
+      "description": "阿里 CosyVoice2 零样本语音合成，中文表现强，支持音色克隆与流式。",
+      "languages": "中 / 英 / 日 / 韩",
+      "parameters": "0.5B",
+      "memory_gb": 4.0,
+      "license": "Apache-2.0",
+      "source": "CosyVoice",
+      "homepage": "https://github.com/FunAudioLLM/CosyVoice",
+      "tags": [
+        "CosyVoice",
+        "声音克隆",
+        "中文"
+      ],
+      "aliases": [
+        "cosyvoice"
+      ],
+      "install": "部署 CosyVoice2 服务，暴露 OpenAI /v1/audio/speech 或写一个 HTTP 包装。",
+      "docs": "如果服务接口不是 OpenAI 标准，请用 command 适配器调用其客户端脚本。",
+      "adapter_example": {
+        "type": "openai-http",
+        "base_url": "http://127.0.0.1:50000/v1",
+        "model": "cosyvoice2",
+        "timeout_seconds": 900
+      }
+    },
+    {
+      "id": "f5-tts",
+      "name": "F5-TTS",
+      "kind": "tts",
+      "description": "高质量零样本 TTS，支持中英双语与参考音色克隆。",
+      "languages": "中 / 英",
+      "parameters": "约 330M",
+      "memory_gb": 4.0,
+      "license": "MIT",
+      "source": "F5-TTS",
+      "homepage": "https://github.com/SWivid/F5-TTS",
+      "tags": [
+        "F5-TTS",
+        "声音克隆",
+        "中英"
+      ],
+      "aliases": [
+        "f5"
+      ],
+      "install": "安装 F5-TTS，写脚本读取 {text} 与 {reference}，输出 {output} WAV。",
+      "docs": "F5-TTS 的 CLI/API 变化较快；建议固定一个版本并封装为薄脚本。",
+      "adapter_example": {
+        "type": "command",
+        "command": [
+          "python",
+          "<path-to-f5-runner>.py",
+          "--text",
+          "{text}",
+          "--reference",
+          "{reference}",
+          "--output",
+          "{output}"
+        ],
+        "output": "wav",
+        "timeout_seconds": 900,
+        "model_dir": "<path-to-f5-model>"
+      }
+    },
+    {
+      "id": "gpt-sovits-v2",
+      "name": "GPT-SoVITS v2",
+      "kind": "tts",
+      "description": "社区流行的少样本声音克隆 TTS，支持中英日。",
+      "languages": "中 / 英 / 日",
+      "parameters": "约 100M+",
+      "memory_gb": 4.0,
+      "license": "MIT",
+      "source": "GPT-SoVITS",
+      "homepage": "https://github.com/RVC-Boss/GPT-SoVITS",
+      "tags": [
+        "GPT-SoVITS",
+        "声音克隆",
+        "中文"
+      ],
+      "aliases": [
+        "gpt-sovits"
+      ],
+      "install": "启动 GPT-SoVITS API 服务，使用其 /tts 接口；如果没有 OpenAI 兼容层，请用 command 包装。",
+      "docs": "GPT-SoVITS 的参考音色、GPT 与 SoVITS 权重需要在适配器配置中显式指定。",
+      "adapter_example": {
+        "type": "openai-http",
+        "base_url": "http://127.0.0.1:9880/v1",
+        "model": "gpt-sovits",
+        "timeout_seconds": 900
+      }
+    },
+    {
+      "id": "fish-speech-1.5",
+      "name": "Fish Speech 1.5",
+      "kind": "tts",
+      "description": "多语言零样本 TTS，支持中英日等语言与声音克隆。",
+      "languages": "多语言",
+      "parameters": "约 0.5B",
+      "memory_gb": 5.0,
+      "license": "CC-BY-NC-SA",
+      "source": "Fish Audio",
+      "homepage": "https://github.com/fishaudio/fish-speech",
+      "tags": [
+        "Fish Speech",
+        "多语言",
+        "声音克隆"
+      ],
+      "aliases": [
+        "fish"
+      ],
+      "install": "启动 Fish Speech HTTP 服务，优先使用 OpenAI 兼容 /v1/audio/speech。",
+      "docs": "如果使用其原生 /v1/tts 协议，请通过 command 适配器或网关转换。",
+      "adapter_example": {
+        "type": "openai-http",
+        "base_url": "http://127.0.0.1:8080/v1",
+        "model": "fish-speech-1.5",
+        "timeout_seconds": 900
+      }
+    },
+    {
+      "id": "chattts",
+      "name": "ChatTTS",
+      "kind": "tts",
+      "description": "对话式中文/英文 TTS，适合自然口语与播客风格。",
+      "languages": "中 / 英",
+      "parameters": "约 400M",
+      "memory_gb": 3.0,
+      "license": "AGPL-3.0",
+      "source": "ChatTTS",
+      "homepage": "https://github.com/2noise/ChatTTS",
+      "tags": [
+        "ChatTTS",
+        "对话",
+        "中文"
+      ],
+      "aliases": [
+        "chattts"
+      ],
+      "install": "安装 ChatTTS，写脚本合成 {text} 并保存 {output} WAV。",
+      "docs": "ChatTTS 使用随机音色，建议固定 speaker seed 并映射到 AIBox 的自定义音色 ID。",
+      "adapter_example": {
+        "type": "command",
+        "command": [
+          "python",
+          "<path-to-chattts-runner>.py",
+          "--text",
+          "{text}",
+          "--output",
+          "{output}"
+        ],
+        "output": "wav",
+        "timeout_seconds": 900,
+        "model_dir": "<path-to-chattts>"
+      }
+    },
+    {
+      "id": "melo-tts-zh",
+      "name": "MeloTTS 中文",
+      "kind": "tts",
+      "description": "轻量多语言 TTS，中文、英文、日语等，CPU 友好。",
+      "languages": "中 / 英 / 日 等",
+      "parameters": "约 50M",
+      "memory_gb": 1.0,
+      "license": "MIT",
+      "source": "MeloTTS",
+      "homepage": "https://github.com/myshell-ai/MeloTTS",
+      "tags": [
+        "MeloTTS",
+        "轻量",
+        "CPU",
+        "中文"
+      ],
+      "aliases": [
+        "melo"
+      ],
+      "install": "安装 melo-tts，写脚本合成 {text} 并保存 {output} WAV。",
+      "docs": "MeloTTS 自带多语言 speaker；可通过 voice 字段选择内置 speaker。",
+      "adapter_example": {
+        "type": "command",
+        "command": [
+          "python",
+          "<path-to-melo-runner>.py",
+          "--text",
+          "{text}",
+          "--output",
+          "{output}",
+          "--speaker",
+          "{voice}"
+        ],
+        "output": "wav",
+        "timeout_seconds": 900,
+        "model_dir": "<path-to-melo>"
+      }
+    },
+    {
+      "id": "openai-tts-server",
+      "name": "OpenAI 兼容 TTS 服务",
+      "kind": "tts",
+      "description": "通用 OpenAI /v1/audio/speech 适配器，可接入 LocalAI、Speaches、Kokoro-FastAPI 等。",
+      "languages": "取决于服务端",
+      "parameters": "取决于服务端",
+      "memory_gb": 0.0,
+      "license": "取决于服务端",
+      "source": "OpenAI-compatible",
+      "homepage": "https://platform.openai.com/docs/api-reference/audio",
+      "tags": [
+        "OpenAI HTTP",
+        "通用",
+        "TTS"
+      ],
+      "aliases": [
+        "openai-tts"
+      ],
+      "install": "把 base_url 指向本地兼容服务，并填写服务端模型名。",
+      "docs": "AIBox 会发送 model/input/voice/response_format/speed；服务端返回音频字节。",
+      "adapter_example": {
+        "type": "openai-http",
+        "base_url": "http://127.0.0.1:8000/v1",
+        "model": "tts-1",
+        "timeout_seconds": 900
+      }
+    }
+  ]
+}

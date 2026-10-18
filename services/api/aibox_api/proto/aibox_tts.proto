@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package aibox.tts.v1;
+
+// AIBox external TTS service. SynthesizeStream delivers the generated audio in
+// chunks after the engine has produced the utterance.
+service TtsService {
+  rpc Synthesize(SynthesizeRequest) returns (SynthesizeResponse);
+  rpc SynthesizeStream(SynthesizeRequest) returns (stream AudioChunk);
+}
+
+message SynthesizeRequest {
+  string text = 1;
+  // "tts-1", "tts-1-hd", "gpt-4o-mini-tts", "indextts-2.5", ...
+  string model = 2;
+  // Built-in or custom reference voice id.
+  string voice = 3;
+  string language = 4;
+  double speed = 5;
+  // mp3, opus, aac, flac, wav, pcm
+  string format = 6;
+}
+
+message SynthesizeResponse {
+  bytes audio = 1;
+  string format = 2;
+  string model = 3;
+  string voice = 4;
+  string warning = 5;
+  int32 sample_rate = 6;
+}
+
+message AudioChunk {
+  bytes data = 1;
+  string format = 2;
+  bool final = 3;
+}

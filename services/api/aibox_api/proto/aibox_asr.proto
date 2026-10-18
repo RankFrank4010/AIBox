@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package aibox.asr.v1;
+
+// AIBox external ASR service.
+//
+// Transcribe performs a unary, file-in / result-out request.
+// TranscribeStream accepts a first StartSession message followed by binary
+// audio chunks, and emits progress plus the final result.
+service AsrService {
+  rpc Transcribe(TranscribeRequest) returns (TranscribeResponse);
+  rpc TranscribeStream(stream AudioChunk) returns (stream StreamEvent);
+}
+
+message TranscribeOptions {
+  // "whisper-1", "small", "large-v3-turbo", etc. Empty = default installed.
+  string model = 1;
+  // ISO-639-1 code or "auto".
+  string language = 2;
+  // "transcribe" or "translate".
+  string task = 3;
+  int32 beam_size = 4;
+  bool vad_filter = 5;
+  bool word_timestamps = 6;
+  // "auto", "cpu", "cuda".
+  string device = 7;
+  // "auto", "int8", "float16", "float32", ...
+  string compute_type = 8;
+}
+
+message TranscribeRequest {
+  bytes audio = 1;
+  string filename = 2;
+  TranscribeOptions options = 3;
+}
+
+message Word {
+  string word = 1;
+  double start = 2;
+  double end = 3;
+  float probability = 4;
+}
+
+message Segment {
+  int32 id = 1;
+  double start = 2;
+  double end = 3;
+  string text = 4;
+  repeated Word words = 5;
+}
+
+message TranscribeResponse {
+  string text = 1;
+  repeated Segment segments = 2;
+  double duration = 3;
+  string language = 4;
+  float language_probability = 5;
+  string model = 6;
+  string device = 7;
+  string compute_type = 8;
+  string warning = 9;
+  string engine = 10;
+  string transcription_id = 11;
+}
+
+message StartSession {
+  TranscribeOptions options = 1;
+  string filename = 2;
+  // "pcm16" (default), "wav", "mp3", "m4a", "webm", "ogg", "flac".
+  string format = 3;
+  int32 sample_rate = 4;
+}
+
+message AudioChunk {
+  oneof payload {
+    StartSession start = 1;
+    bytes data = 2;
+    bool end = 3;
+  }
+}
+
+message Progress {
+  float progress = 1;
+  string stage = 2;
+  string status = 3;
+}
+
+message Started {
+  string session_id = 1;
+  string model = 2;
+  string format = 3;
+  int32 sample_rate = 4;
+}
+
+message Error {
+  string message = 1;
+  int32 code = 2;
+  string type = 3;
+}
+
+message StreamEvent {
+  oneof event {
+    Started started = 1;
+    Progress progress = 2;
+    TranscribeResponse result = 3;
+    Error error = 4;
+  }
+}
