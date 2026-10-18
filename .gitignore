@@ -1,0 +1,64 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+target/
+
+# Runtime data
+data/
+runtimes/
+*.db
+*.db-shm
+*.db-wal
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage/
+test-results/
+playwright-report/
+
+# Frontend / desktop output
+apps/web/dist/
+apps/web/.vite/
+*.tsbuildinfo
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/gen/
+apps/desktop/src-tauri/binaries/*
+!apps/desktop/src-tauri/binaries/.gitkeep
+
+# Local session / scratch
+session.jsonl
+screenshots/tmp/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+
+# Logs
+*.log
+logs/
+
+# Model weights / generated media accidentally placed outside data/
+*.gguf
+*.safetensors
+*.ckpt
+*.onnx
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

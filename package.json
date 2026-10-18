@@ -1,0 +1,20 @@
+{
+  "name": "aibox",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AIBox — local AI model studio with a Fluent WebUI and cross-platform runtime.",
+  "scripts": {
+    "dev:web": "pnpm --filter @aibox/web dev",
+    "build:web": "pnpm --filter @aibox/web build",
+    "lint:web": "pnpm --filter @aibox/web lint",
+    "test:web": "pnpm --filter @aibox/web test",
+    "dev:desktop": "pnpm --filter @aibox/desktop dev",
+    "build": "pnpm build:web",
+    "check:desktop": "pnpm --filter @aibox/desktop check",
+    "dev": "pnpm dev:web"
+  },
+  "packageManager": "pnpm@10.18.3",
+  "engines": {
+    "node": ">=20"
+  }
+}
