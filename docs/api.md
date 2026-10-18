@@ -267,6 +267,29 @@ POST /api/llm/unload
 
 本地 GGUF 通过 llama-server 运行；外部 OpenAI 兼容服务使用 `AIBOX_LLM_BASE_URL`。详见 [大语言模型](llm.md)。
 
+## 多设备与并行
+
+```http
+GET  /api/devices
+POST /api/devices/refresh
+```
+
+返回设备池、当前策略、每类引擎的设备分配、ASR 活跃占用与并发数。设置字段：
+
+```json
+{
+  "parallel_strategy": "data",
+  "parallel_devices": ["cuda:0", "cuda:1"],
+  "parallel_workers": 4,
+  "asr_device": "auto",
+  "tts_device": "cuda:1",
+  "image_device": "cuda:0",
+  "llm_device": "auto"
+}
+```
+
+策略与限制见 [多设备与并行推理](parallel.md)。
+
 ## 健康检查
 
 ```http

@@ -139,6 +139,16 @@ IndexTTS 通过独立 Python worker 加载，模型放在 `models/tts/`；运行
 
 本地 GGUF 通过 `llama-server` 运行，`AIBOX_LLM_GPU_LAYERS` 控制 GPU 卸载；外部 OpenAI 兼容服务不占本地预算。详见 [大语言模型](llm.md)。
 
+## 多设备
+
+设备池由硬件发现生成：`cuda:N`、`metal:N`、`cpu`。设置页可选择参与调度的设备，并为 ASR / TTS / Image / LLM 指定设备。多卡策略：
+
+- `data`：ASR 每设备一个副本；
+- `tensor` / `pipeline`：本地 llama.cpp 多 GPU 切分；
+- `hybrid`：LLM 张量并行 + 其他任务数据并行。
+
+详见 [多设备与并行推理](parallel.md)。
+
 ASR 与 TTS 同时驻留时的预算、换出规则见 [多模型与弹性调度](runtime.md)。社区外部适配器（`openai-http` / `command`）由外部进程或服务管理资源，不进入本地驻留预算；详见 [社区适配](community.md)。
 
 ## 资源预算

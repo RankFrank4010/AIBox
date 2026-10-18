@@ -6,7 +6,7 @@
 
 ```text
 python -m ruff check services/api        → All checks passed
-python -m pytest services/api/tests -q   → 36 passed
+python -m pytest services/api/tests -q   → 38 passed
 ```
 
 Windows 上测试进程偶发 `0xC0000005`（Python / 原生库退出阶段，堆栈落在 GC 或 pytest 源码读取），重跑即可通过；服务进程本身持续运行无异常。
@@ -107,6 +107,14 @@ container: 1Panel-new-api-0Vsg
 - NewAPI 当前部分上游渠道返回 `Missing API key`、`Model is unavailable`、`ModelDeprecated`、`504`，属于 NewAPI 渠道状态；
 - 未把 NewAPI Token 写入仓库；双向接入说明见 [与 NewAPI 结合](newapi.md)。
 
+## 多设备与并行实测
+
+- `/api/devices` 返回 `cuda:0` / `cpu` 设备池、选中设备、策略与并发数；
+- 设置 PATCH 后策略与设备池即时反映；
+- `tensor` 策略生成 `row` split，`pipeline` 生成 `layer` split；
+- 单卡环境自动退化为单设备；
+- 真实双卡机器未在本机验证；调度、命令生成与 API 流程已测试。
+
 ## 外部传输端到端
 
 在本机启动 HTTP/WS/gRPC/MRCP 服务后实测：
@@ -159,7 +167,7 @@ Whisper Small · NVIDIA CUDA · float16
 ```text
 pnpm --filter @aibox/web typecheck   → 通过
 pnpm --filter @aibox/web test        → 4 passed
-pnpm --filter @aibox/web build       → 通过（约 784 KB JS / 214 KB gzip）
+pnpm --filter @aibox/web build       → 通过（约 787 KB JS / 215 KB gzip）
 pnpm --filter @aibox/web build:desktop → 通过
 ```
 

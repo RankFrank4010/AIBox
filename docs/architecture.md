@@ -131,6 +131,16 @@ TTS 模型目录支持递归下载（IndexTTS 的 `qwen0.6bemo4-merge/` 子目�
 
 本地 `llm` 注册为弹性槽位，使用 GGUF 模型元数据参与预算；切换模型时停止旧 `llama-server`。对话 UI 与 `/v1/chat/completions` 共用同一引擎和 SSE 流。详见 [大语言模型](llm.md)。
 
+## 多设备调度
+
+`DeviceScheduler` 从硬件发现中生成 `cuda:0` / `cuda:1` / `cpu` 设备池，按策略选择设备：
+
+- ASR `data`：每个设备一个惰性 `WhisperEngine` 副本；
+- TTS / Image：worker 启动参数带 `--device`；
+- LLM：llama.cpp `--split-mode row|layer`、`--tensor-split` 与 `CUDA_VISIBLE_DEVICES`。
+
+详见 [多设备与并行推理](parallel.md)。
+
 ## 对外传输
 
 `ExternalAsrGateway` 是所有外部协议的共享入口：

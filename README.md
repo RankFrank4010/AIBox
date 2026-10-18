@@ -23,6 +23,7 @@ AIBox 把模型下载、硬件探测、推理后端和生成工作流放进同�
 - **模型管理**：Hugging Face 下载、分文件进度、速度 / ETA、取消、完整性校验、安装 manifest、删除、设为默认。
 - **多种加载**：已安装模型可在转写 / 合成页即时切换；ASR 与 TTS 可同时驻留，弹性调度按显存 / 内存与需求换入换出。
 - **弹性模式**：自动、均衡、ASR 优先、TTS 优先、时间片、自定义；可配置空闲卸载、切换窗口、常驻上限、显存 / 内存预留与固定驻留类型。
+- **多设备与并行**：设备池、ASR 数据并行、llama.cpp 张量 / 流水切分；支持 `auto` / `single` / `data` / `tensor` / `pipeline` / `hybrid` 策略。
 - **社区适配**：声明式 `openai-http` / `command` 适配器，覆盖 FunASR、Moonshine、Piper、Kokoro、CosyVoice、F5-TTS、GPT-SoVITS、Fish Speech 等主流模型；内置 16 个配方模板，导入后默认停用。
 - **真实推理**：faster-whisper + CTranslate2（CPU / CUDA）；IndexTTS 通过独立 Python worker 加载，避免依赖冲突。
 - **转写工作台**：拖放音频、自动语言检测、VAD、beam size、词级时间戳、实时进度、取消任务。
@@ -343,6 +344,25 @@ $env:AIBOX_LLM_MODEL="<NewAPI Model ID>"
 ```
 
 语言模型页会读取 NewAPI `/v1/models` 的模型列表。四号服务器 NewAPI 的部署、双向接入与当前渠道状态见 [与 NewAPI 结合](docs/newapi.md)。
+
+### 多设备与并行
+
+设置页可选择设备池与策略：
+
+```json
+{
+  "parallel_strategy": "tensor",
+  "parallel_devices": ["cuda:0", "cuda:1"],
+  "parallel_workers": 4
+}
+```
+
+- `data`：ASR 任务按设备分配，每卡一个 Whisper 副本；
+- `tensor`：llama.cpp row split；
+- `pipeline`：llama.cpp layer split；
+- `hybrid`：LLM tensor + 其他任务数据并行。
+
+详见 [多设备与并行推理](docs/parallel.md)。
 
 ## 社区适配
 
