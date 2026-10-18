@@ -1,0 +1,16 @@
+{
+  "name": "@aibox/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AIBox desktop shell for Windows and macOS (Fluent WebUI in a Tauri WebView).",
+  "scripts": {
+    "dev": "cross-env RUSTUP_TOOLCHAIN=1.90.0 tauri dev",
+    "build": "cross-env RUSTUP_TOOLCHAIN=1.90.0 tauri build",
+    "tauri": "tauri",
+    "check": "node scripts/check-desktop.mjs"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.12.3",
+    "cross-env": "^10.1.0"
+  }
+}
