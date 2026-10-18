@@ -61,6 +61,8 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "tts_device": "auto",
     "image_device": "auto",
     "llm_device": "auto",
+    "default_training_model": "Qwen/Qwen3-8B",
+    "training_method": "qlora",
     "language": "auto",
     "task": "transcribe",
     "device": "auto",
@@ -163,6 +165,8 @@ def _coerce_settings(raw: dict[str, Any]) -> dict[str, Any]:
     for key in ("asr_device", "tts_device", "image_device", "llm_device"):
         if not isinstance(settings.get(key), str) or not settings[key]:
             settings[key] = "auto"
+    if settings.get("training_method") not in {"lora", "qlora", "full"}:
+        settings["training_method"] = "qlora"
     if settings["elastic_mode"] not in {
         "auto",
         "balanced",
@@ -278,6 +282,12 @@ class AppConfig:
     llm_gpu_layers: int = field(
         default_factory=lambda: int(os.getenv("AIBOX_LLM_GPU_LAYERS", "99"))
     )
+    demo_training: bool = field(
+        default_factory=lambda: _env_bool("AIBOX_DEMO_TRAINING", False)
+    )
+    training_command: str = field(
+        default_factory=lambda: os.getenv("AIBOX_TRAIN_COMMAND", "")
+    )
     allow_adapter_commands: bool = field(
         default_factory=lambda: _env_bool("AIBOX_ALLOW_ADAPTER_COMMANDS", False)
     )
@@ -333,6 +343,10 @@ class AppConfig:
         self.image_outputs_dir = self.data_dir / "images"
         self.separation_outputs_dir = self.data_dir / "separations"
         self.video_outputs_dir = self.data_dir / "videos"
+        self.training_dir = self.data_dir / "training"
+        self.training_datasets_dir = self.training_dir / "datasets"
+        self.training_outputs_dir = self.training_dir / "runs"
+        self.training_logs_dir = self.training_dir / "logs"
         self.adapters_dir = Path(
             os.getenv("AIBOX_ADAPTERS_DIR") or (self.data_dir / "adapters")
         ).expanduser().resolve()
@@ -354,6 +368,9 @@ class AppConfig:
             self.image_outputs_dir,
             self.separation_outputs_dir,
             self.video_outputs_dir,
+            self.training_datasets_dir,
+            self.training_outputs_dir,
+            self.training_logs_dir,
             self.adapters_dir,
             self.uploads_dir,
             self.exports_dir,

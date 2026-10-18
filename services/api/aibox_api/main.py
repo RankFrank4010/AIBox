@@ -49,6 +49,8 @@ from .separation import SeparationEngine
 from .separation_jobs import SeparationJobs
 from .separation_store import SeparationStore
 from .store import TranscriptionStore, render_export
+from .training import TrainingEngine, TrainingJobs
+from .training_store import TrainingStore
 from .transports.community_api import create_community_router
 from .transports.grpc_service import start_grpc_server, stop_grpc_server
 from .transports.images_api import create_images_router, create_openai_images_router
@@ -56,6 +58,7 @@ from .transports.llm_api import create_llm_router, create_openai_chat_router
 from .transports.mrcp import start_mrcp_server, stop_mrcp_server
 from .transports.openai_api import create_openai_router
 from .transports.separation_api import create_separation_router
+from .transports.training_api import create_training_router
 from .transports.tts_api import create_openai_tts_router, create_tts_router
 from .transports.video_api import create_video_router
 from .transports.websocket_asr import create_websocket_router
@@ -79,6 +82,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     image_store = ImageStore(cfg.database_path)
     separation_store = SeparationStore(cfg.database_path)
     video_store = VideoStore(cfg.database_path)
+    training_store = TrainingStore(cfg.database_path)
     downloads = DownloadManager(cfg)
     community = CommunityRegistry(cfg)
     runtime = RuntimeManager(cfg)
@@ -97,6 +101,8 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     separation_jobs = SeparationJobs(cfg, separation_store, separation_engine)
     video_engine = VideoEngine(cfg)
     video_jobs = VideoJobs(cfg, video_store, video_engine)
+    training_engine = TrainingEngine(cfg, training_store)
+    training_jobs = TrainingJobs(cfg, training_store, training_engine)
     jobs = TranscriptionJobs(
         cfg,
         store,
@@ -192,6 +198,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         image_interrupted = image_store.mark_interrupted()
         separation_interrupted = separation_store.mark_interrupted()
         video_interrupted = video_store.mark_interrupted()
+        training_interrupted = training_store.mark_interrupted()
         if interrupted:
             logger.info("marked %s interrupted transcription(s)", interrupted)
         if image_interrupted:
@@ -200,6 +207,8 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             logger.info("marked %s interrupted separation(s)", separation_interrupted)
         if video_interrupted:
             logger.info("marked %s interrupted video generation(s)", video_interrupted)
+        if training_interrupted:
+            logger.info("marked %s interrupted training job(s)", training_interrupted)
         grpc_status, grpc_server = await start_grpc_server(cfg, gateway, tts_engine)
         mrcp_status, mrcp_server = await start_mrcp_server(cfg, gateway)
         runtime.start()
@@ -221,6 +230,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             image_jobs.shutdown()
             separation_jobs.shutdown()
             video_jobs.shutdown()
+            training_jobs.shutdown()
             llm_engine.unload()
             tts_engine.unload()
             image_engine.unload()
@@ -243,6 +253,8 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     app.state.separation_jobs = separation_jobs
     app.state.video = video_engine
     app.state.video_jobs = video_jobs
+    app.state.training = training_engine
+    app.state.training_jobs = training_jobs
     app.state.llm = llm_engine
     app.state.scheduler = scheduler
     app.state.runtime = runtime
@@ -269,6 +281,11 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     )
     app.include_router(
         create_video_router(cfg, video_store, video_jobs, video_engine)
+    )
+    app.include_router(
+        create_training_router(
+            cfg, training_store, training_jobs, training_engine
+        )
     )
     app.include_router(create_community_router(cfg, community))
     app.include_router(create_websocket_router(cfg, gateway))
@@ -340,6 +357,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             "separation": separation_engine.status(),
             "video": video_engine.status(),
             "llm": llm_engine.status(),
+            "training": training_engine.status(),
             "devices": scheduler.status(),
             "runtime": runtime.status(),
             "community": community.list_public()["summary"],
@@ -420,6 +438,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             "separation": separation_engine.status(),
             "video": video_engine.status(),
             "llm": llm_engine.status(),
+            "training": training_engine.status(),
             "devices": scheduler.status(),
             "runtime": runtime.status(),
             "community": community.list_public(),
