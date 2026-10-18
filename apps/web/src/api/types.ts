@@ -121,6 +121,8 @@ export interface AppSettings {
   tts_device: string;
   image_device: string;
   llm_device: string;
+  default_training_model: string;
+  training_method: 'lora' | 'qlora' | 'full' | string;
   language: string;
   task: 'transcribe' | 'translate';
   device: 'auto' | 'cpu' | 'cuda' | 'npu' | 'metal';
@@ -315,6 +317,7 @@ export interface SystemInfo {
   video: VideoStatus;
   llm: LLMStatus;
   devices: DeviceStatus;
+  training: TrainingStatus;
   runtime: RuntimeStatus;
   community: CommunityPayload;
   settings: AppSettings;
@@ -794,4 +797,72 @@ export interface DeviceStatus {
   preferred: Record<string, string>;
   active: Record<string, number>;
   workers: number;
+}
+
+export interface TrainingModelPreset {
+  id: string;
+  name: string;
+  hf_id: string;
+  parameters: string;
+  license: string;
+  qlora_gb: number;
+  full_gb: number;
+}
+
+export interface TrainingMethod {
+  id: string;
+  label: string;
+  note: string;
+}
+
+export interface TrainingDataset {
+  id: string;
+  name: string;
+  format: string;
+  size_bytes: number;
+  rows: number;
+  preview: Array<Record<string, unknown>>;
+  created_at: string;
+}
+
+export interface TrainingArtifact {
+  name: string;
+  path: string;
+  bytes: number;
+  url: string;
+}
+
+export interface TrainingJob {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  status: string;
+  stage: string;
+  progress: number;
+  name: string;
+  base_model: string;
+  method: string;
+  dataset_id: string;
+  device: string;
+  parallel_strategy: string;
+  config: Record<string, unknown>;
+  metrics: Record<string, unknown>;
+  error: string | null;
+  artifacts: TrainingArtifact[];
+  log_url: string;
+}
+
+export interface TrainingStatus {
+  demo: boolean;
+  command: boolean;
+  models: TrainingModelPreset[];
+  methods: TrainingMethod[];
+  parallelism: TrainingMethod[];
+  datasets: TrainingDataset[];
+  jobs: TrainingJob[];
+}
+
+export interface TrainingLogs {
+  lines: string[];
+  text: string;
 }

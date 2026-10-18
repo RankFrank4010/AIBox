@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   ArrowDownloadRegular,
+  BeakerRegular,
   ChatRegular,
   GlobeRegular,
   HomeRegular,
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { path: '/transcribe', label: '语音转写', icon: <MicRegular /> },
   { path: '/tts', label: '语音合成', icon: <Speaker2Regular /> },
   { path: '/chat', label: '对话', icon: <ChatRegular /> },
+  { path: '/training', label: '微调', icon: <BeakerRegular /> },
   { path: '/images', label: '图像生成', icon: <ImageRegular /> },
   { path: '/videos', label: '视频生成', icon: <VideoRegular /> },
   { path: '/separations', label: '音频分离', icon: <MusicNote2Regular /> },
@@ -42,6 +44,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/transcribe': '语音转写',
   '/tts': '语音合成',
   '/chat': '语言模型',
+  '/training': '模型微调',
   '/images': '图像生成',
   '/videos': '视频生成',
   '/separations': '音频分离',

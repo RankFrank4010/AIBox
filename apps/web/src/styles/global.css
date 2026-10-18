@@ -4900,7 +4900,7 @@ a {
     bottom: 10px;
     z-index: 40;
     display: grid;
-    grid-template-columns: repeat(12, 1fr);
+    grid-template-columns: repeat(13, 1fr);
     padding: 7px;
     border-radius: 16px;
     background: rgba(10, 14, 23, 0.9);

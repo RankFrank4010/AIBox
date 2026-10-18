@@ -1,0 +1,372 @@
+/* ------------------------------------------------------------------- training */
+.training-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(380px, 0.98fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.training-config {
+  padding: 22px;
+}
+
+.training-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+  margin-top: 14px;
+}
+
+.training-dataset-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.training-datasets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.training-dataset {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: rgba(148, 163, 190, 0.03);
+}
+
+.training-dataset > span {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.training-dataset strong {
+  font-size: 8.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.training-dataset small {
+  font-size: 7.5px;
+  color: var(--muted-2);
+}
+
+.training-dataset button {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 5px;
+  color: var(--muted-2);
+  cursor: pointer;
+}
+
+.training-dataset button:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.training-advanced {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.training-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.training-output {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.training-result-panel {
+  min-height: 480px;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 178, 84, 0.06), transparent 40%),
+    var(--panel);
+}
+
+.training-progress {
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.training-progress-orb {
+  width: 108px;
+  height: 108px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  margin-bottom: 10px;
+  color: var(--amber);
+  background: radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.14), transparent 42%),
+    linear-gradient(145deg, rgba(255, 178, 84, 0.2), rgba(42, 38, 30, 0.4));
+  border: 1px solid rgba(255, 178, 84, 0.24);
+  animation: orb-breathe 2.4s ease-in-out infinite;
+}
+
+.training-progress-orb svg {
+  width: 34px;
+  height: 34px;
+}
+
+.training-progress strong {
+  font-size: 14px;
+}
+
+.training-progress > span,
+.training-progress small {
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.training-progress .images-progress-track {
+  width: 100%;
+  max-width: 320px;
+  margin: 8px 0 2px;
+}
+
+.training-detail {
+  margin-top: 13px;
+}
+
+.training-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 9px;
+}
+
+.training-detail-head > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.training-detail-head strong {
+  font-size: 11px;
+}
+
+.training-detail-head span {
+  font-size: 7.5px;
+  color: var(--muted-2);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.training-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.training-meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 8px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: rgba(148, 163, 190, 0.03);
+}
+
+.training-meta span {
+  font-size: 7px;
+  color: var(--muted-2);
+}
+
+.training-meta strong {
+  font-size: 8.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.training-artifacts {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 9px;
+}
+
+.training-artifacts .export-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: auto;
+  height: 27px;
+  padding: 0 8px;
+  font-size: 8px;
+}
+
+.training-artifacts .export-chip svg {
+  width: 12px;
+  height: 12px;
+}
+
+.training-artifacts .export-chip small {
+  color: var(--muted-2);
+  font-size: 7px;
+}
+
+.training-log-head {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  margin-bottom: 5px;
+  font-size: 7.5px;
+  color: var(--muted-2);
+}
+
+.training-log {
+  max-height: 220px;
+  overflow: auto;
+  margin: 0;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(3, 7, 13, 0.42);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.training-history-panel {
+  padding: 16px;
+}
+
+.training-history {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.training-history-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.training-history-item:hover {
+  background: rgba(148, 163, 190, 0.05);
+}
+
+.training-history-item.is-active {
+  border-color: rgba(255, 178, 84, 0.3);
+  background: rgba(255, 178, 84, 0.08);
+}
+
+.training-history-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--muted-2);
+}
+
+.training-history-dot.status-completed {
+  background: var(--mint);
+}
+
+.training-history-dot.status-running,
+.training-history-dot.status-queued {
+  background: var(--amber);
+}
+
+.training-history-dot.status-failed {
+  background: var(--danger);
+}
+
+.training-history-item > span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.training-history-item strong {
+  font-size: 8.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.training-history-item small {
+  font-size: 7.5px;
+  color: var(--muted-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.training-history-progress {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--muted-2);
+}
+
+@media (max-width: 1120px) {
+  .training-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .training-config {
+    padding: 16px;
+  }
+
+  .training-fields,
+  .training-datasets,
+  .training-advanced,
+  .training-meta {
+    grid-template-columns: 1fr;
+  }
+}

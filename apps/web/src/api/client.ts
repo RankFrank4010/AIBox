@@ -9,6 +9,10 @@ import type {
   LLMStatus,
   ModelsPayload,
   DeviceStatus,
+  TrainingDataset,
+  TrainingJob,
+  TrainingLogs,
+  TrainingStatus,
   SeparationJob,
   SeparationStatus,
   SeparationsPayload,
@@ -234,6 +238,40 @@ export const api = {
   llmStatus: () => request<LLMStatus>('/api/llm/status'),
   llmUnload: () => request('/api/llm/unload', { method: 'POST' }),
   devices: () => request<DeviceStatus>('/api/devices'),
+  trainingStatus: () => request<TrainingStatus>('/api/training/status'),
+  trainingDatasets: () =>
+    request<{ items: TrainingDataset[] }>('/api/training/datasets'),
+  uploadTrainingDataset: (form: FormData) =>
+    request<TrainingDataset>('/api/training/datasets', {
+      method: 'POST',
+      body: form,
+    }),
+  deleteTrainingDataset: (id: string) =>
+    request(`/api/training/datasets/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }),
+  trainingJobs: (limit = 30) =>
+    request<{ items: TrainingJob[] }>(`/api/training/jobs?limit=${limit}`),
+  createTrainingJob: (payload: Record<string, unknown>) =>
+    request<TrainingJob>('/api/training/jobs', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  trainingJob: (id: string) =>
+    request<TrainingJob>(`/api/training/jobs/${encodeURIComponent(id)}`),
+  cancelTrainingJob: (id: string) =>
+    request<TrainingJob>(
+      `/api/training/jobs/${encodeURIComponent(id)}/cancel`,
+      { method: 'POST' },
+    ),
+  deleteTrainingJob: (id: string) =>
+    request(`/api/training/jobs/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }),
+  trainingLogs: (id: string, tail = 200) =>
+    request<TrainingLogs>(
+      `/api/training/jobs/${encodeURIComponent(id)}/logs?tail=${tail}`,
+    ),
   url: (path: string) => `${API_BASE}${path}`,
 };
 
