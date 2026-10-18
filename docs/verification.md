@@ -92,6 +92,21 @@ Windows 上测试进程偶发 `0xC0000005`（Python / 原生库退出阶段，�
 - 12 项移动导航在 390px 下无横向溢出；
 - 真实 GGUF 与 llama-server 未在本机下载运行，协议与 fake 服务已实测。
 
+## NewAPI 联调
+
+四号服务器 NewAPI：
+
+```text
+https://newapi.franj2.top
+x-new-api-version: v0.13.2
+container: 1Panel-new-api-0Vsg
+```
+
+- 使用 NewAPI Token 调用 `GET /v1/models`：HTTP 200，返回 **111** 个模型；
+- AIBox 外部 LLM 读取同一 `/v1/models`，语言模型页可作为外部模型源；
+- NewAPI 当前部分上游渠道返回 `Missing API key`、`Model is unavailable`、`ModelDeprecated`、`504`，属于 NewAPI 渠道状态；
+- 未把 NewAPI Token 写入仓库；双向接入说明见 [与 NewAPI 结合](newapi.md)。
+
 ## 外部传输端到端
 
 在本机启动 HTTP/WS/gRPC/MRCP 服务后实测：

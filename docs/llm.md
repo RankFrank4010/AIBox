@@ -80,6 +80,18 @@ AIBox 会从 `/v1/models` 读取可用模型，在语言模型页展示。`llm_p
 - `openai`：强制外部；
 - `demo`：演示。
 
+### NewAPI
+
+NewAPI 是兼容 OpenAI 的模型网关，可以直接作为外部服务：
+
+```powershell
+$env:AIBOX_LLM_BASE_URL="https://newapi.franj2.top/v1"
+$env:AIBOX_LLM_API_KEY="<NewAPI Token>"
+$env:AIBOX_LLM_MODEL="mimo-v2.6-flash-free"
+```
+
+四号服务器的部署、模型池和双向接入方式见 [与 NewAPI 结合](newapi.md)。
+
 ## 对话 UI
 
 - 流式输出与「停止」；

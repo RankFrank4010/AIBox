@@ -332,6 +332,18 @@ MiniMax 需要 `MINIMAX_API_KEY`；ComfyUI 需要 `AIBOX_COMFYUI_URL` 和高级�
 
 本地 GGUF 通过 `llama-server` 运行，设置 `AIBOX_LLAMA_SERVER` 或安装到 PATH；也可以连接 Ollama / LM Studio / vLLM / 任意 OpenAI 兼容服务（`AIBOX_LLM_BASE_URL`）。详见 [大语言模型](docs/llm.md)。
 
+### NewAPI 网关
+
+AIBox 可以直接把 NewAPI 作为外部 OpenAI 兼容服务：
+
+```powershell
+$env:AIBOX_LLM_BASE_URL="https://newapi.franj2.top/v1"
+$env:AIBOX_LLM_API_KEY="<NewAPI Token>"
+$env:AIBOX_LLM_MODEL="mimo-v2.6-flash-free"
+```
+
+语言模型页会读取 NewAPI `/v1/models` 的模型列表。四号服务器 NewAPI 的部署、双向接入与当前渠道状态见 [与 NewAPI 结合](docs/newapi.md)。
+
 ## 社区适配
 
 AIBox 不要求所有模型都内置运行时。社区可以用声明式 manifest 把特殊模型接进来：
