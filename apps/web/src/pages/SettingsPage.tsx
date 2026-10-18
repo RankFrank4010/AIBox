@@ -49,6 +49,7 @@ export function SettingsPage() {
   const installedTts = (models?.installed ?? []).filter((model) => model.kind === 'tts');
   const installedImages = (models?.installed ?? []).filter((model) => model.kind === 'image');
   const installedLlm = (models?.installed ?? []).filter((model) => model.kind === 'llm');
+  const computeDevices = system?.devices?.devices ?? [];
   const dirty = useMemo(
     () => Boolean(draft && settings && JSON.stringify(draft) !== JSON.stringify(settings)),
     [draft, settings],
@@ -429,6 +430,109 @@ export function SettingsPage() {
             </div>
             <div className="inline-note">
               系统提示词与最大 Token 在语言模型页的“高级设置”中调整；设置会作为新对话的默认值。
+            </div>
+          </section>
+
+          <section className="panel settings-card">
+            <div className="settings-card-head">
+              <div className="settings-icon">
+                <GaugeRegular />
+              </div>
+              <div>
+                <h2>多设备与并行推理</h2>
+                <p>选择参与推理的计算设备，并为 ASR / TTS / 图像 / LLM 指定设备与并行策略。</p>
+              </div>
+            </div>
+            <div className="settings-grid">
+              <label className="field">
+                <span className="field-label">并行策略</span>
+                <Select
+                  value={draft.parallel_strategy}
+                  onChange={(_, data) => patch({ parallel_strategy: data.value })}
+                >
+                  <option value="auto">自动</option>
+                  <option value="single">单设备</option>
+                  <option value="data">数据并行</option>
+                  <option value="tensor">张量并行（LLM row split）</option>
+                  <option value="pipeline">流水并行（LLM layer split）</option>
+                  <option value="hybrid">混合（LLM row + 数据并行）</option>
+                </Select>
+              </label>
+              <label className="field">
+                <span className="field-label">并发任务数</span>
+                <Select
+                  value={String(draft.parallel_workers)}
+                  onChange={(_, data) => patch({ parallel_workers: Number(data.value) })}
+                >
+                  {[1, 2, 3, 4, 6, 8].map((value) => (
+                    <option key={value} value={String(value)}>
+                      {value} 个
+                    </option>
+                  ))}
+                </Select>
+              </label>
+              <div className="field field-full">
+                <span className="field-label">设备池</span>
+                <div className="device-picker">
+                  {computeDevices.map((device) => {
+                    const selected = draft.parallel_devices.includes(device.id);
+                    return (
+                      <button
+                        key={device.id}
+                        type="button"
+                        className={`device-chip${selected ? ' is-active' : ''}`}
+                        disabled={!device.available}
+                        onClick={() =>
+                          patch({
+                            parallel_devices: selected
+                              ? draft.parallel_devices.filter((item) => item !== device.id)
+                              : [...draft.parallel_devices, device.id],
+                          })
+                        }
+                      >
+                        <strong>{device.id}</strong>
+                        <small>
+                          {device.name} · {device.backend}
+                          {device.memory_gb ? ` · ${device.memory_gb} GB` : ''}
+                        </small>
+                      </button>
+                    );
+                  })}
+                </div>
+                <span className="field-hint">
+                  不选表示自动使用全部可用加速设备；CPU 始终可用。
+                </span>
+              </div>
+              {(['asr', 'tts', 'image', 'llm'] as const).map((engine) => (
+                <label className="field" key={engine}>
+                  <span className="field-label">
+                    {engine === 'asr'
+                      ? 'ASR 设备'
+                      : engine === 'tts'
+                        ? 'TTS 设备'
+                        : engine === 'image'
+                          ? '图像设备'
+                          : 'LLM 设备'}
+                  </span>
+                  <Select
+                    value={draft[`${engine}_device`]}
+                    onChange={(_, data) => patch({ [`${engine}_device`]: data.value })}
+                  >
+                    <option value="auto">自动分配</option>
+                    {computeDevices
+                      .filter((device) => device.available)
+                      .map((device) => (
+                        <option key={device.id} value={device.id}>
+                          {device.id} · {device.name}
+                        </option>
+                      ))}
+                  </Select>
+                </label>
+              ))}
+            </div>
+            <div className="inline-note">
+              数据并行会按设备分配 ASR / API 任务；张量与流水并行走 llama.cpp 的多 GPU
+              切分。单卡设备会忽略多卡策略；切换策略后建议重新加载模型或重启服务。
             </div>
           </section>
 

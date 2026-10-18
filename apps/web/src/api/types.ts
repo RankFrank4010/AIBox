@@ -114,6 +114,13 @@ export interface AppSettings {
   llm_temperature: number;
   llm_max_tokens: number;
   llm_system_prompt: string;
+  parallel_strategy: 'auto' | 'single' | 'data' | 'tensor' | 'pipeline' | 'hybrid' | string;
+  parallel_devices: string[];
+  parallel_workers: number;
+  asr_device: string;
+  tts_device: string;
+  image_device: string;
+  llm_device: string;
   language: string;
   task: 'transcribe' | 'translate';
   device: 'auto' | 'cpu' | 'cuda' | 'npu' | 'metal';
@@ -307,6 +314,7 @@ export interface SystemInfo {
   separation: SeparationStatus;
   video: VideoStatus;
   llm: LLMStatus;
+  devices: DeviceStatus;
   runtime: RuntimeStatus;
   community: CommunityPayload;
   settings: AppSettings;
@@ -733,6 +741,13 @@ export interface LLMStatus {
   loaded_model: string | null;
   server_port: number | null;
   context: number;
+  parallel?: {
+    strategy: string;
+    cuda_indices: number[];
+    split_mode: string;
+    tensor_split: number[];
+    parallel: number;
+  } | null;
 }
 
 export interface ChatMessage {
@@ -758,4 +773,25 @@ export interface ChatCompletion {
     completion_tokens: number;
     total_tokens: number;
   };
+}
+
+export interface ComputeDevice {
+  id: string;
+  name: string;
+  kind: string;
+  backend: string;
+  memory_gb: number | null;
+  index: number | null;
+  available: boolean;
+}
+
+export interface DeviceStatus {
+  strategy: string;
+  strategies: string[];
+  devices: ComputeDevice[];
+  selected: string[];
+  assignments: Record<string, string[]>;
+  preferred: Record<string, string>;
+  active: Record<string, number>;
+  workers: number;
 }

@@ -8,6 +8,7 @@ import type {
   ImageStatus,
   LLMStatus,
   ModelsPayload,
+  DeviceStatus,
   SeparationJob,
   SeparationStatus,
   SeparationsPayload,
@@ -232,6 +233,7 @@ export const api = {
     request(`/api/videos/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   llmStatus: () => request<LLMStatus>('/api/llm/status'),
   llmUnload: () => request('/api/llm/unload', { method: 'POST' }),
+  devices: () => request<DeviceStatus>('/api/devices'),
   url: (path: string) => `${API_BASE}${path}`,
 };
 
