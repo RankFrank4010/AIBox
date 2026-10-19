@@ -17,6 +17,7 @@ import { ImagesPage } from './pages/ImagesPage';
 import { SeparationsPage } from './pages/SeparationsPage';
 import { ChatPage } from './pages/ChatPage';
 import { TranslationPage } from './pages/TranslationPage';
+import { OcrPage } from './pages/OcrPage';
 import { TrainingPage } from './pages/TrainingPage';
 import { VideosPage } from './pages/VideosPage';
 
@@ -38,6 +39,7 @@ export default function App() {
               <Route path="tts" element={<TtsPage />} />
               <Route path="chat" element={<ChatPage />} />
               <Route path="translation" element={<TranslationPage />} />
+              <Route path="ocr" element={<OcrPage />} />
               <Route path="training" element={<TrainingPage />} />
               <Route path="images" element={<ImagesPage />} />
               <Route path="separations" element={<SeparationsPage />} />

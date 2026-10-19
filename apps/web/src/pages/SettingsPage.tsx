@@ -14,6 +14,7 @@ import {
   ChatRegular,
   CheckmarkRegular,
   DeleteRegular,
+  DocumentTextRegular,
   FolderOpenRegular,
   GaugeRegular,
   ImageRegular,
@@ -767,6 +768,94 @@ export function SettingsPage() {
             <div className="inline-note">
               LibreTranslate 与 Argos 走本地 / 局域网服务；Index-Translate、混元与 OpenAI
               兼容网关使用 /v1/chat/completions。API Key 仅保存在本机设置中。
+            </div>
+          </section>
+
+          <section className="panel settings-card">
+            <div className="settings-card-head">
+              <div className="settings-icon">
+                <DocumentTextRegular />
+              </div>
+              <div>
+                <h2>OCR 服务</h2>
+                <p>配置 GLM-OCR、OpenAI 兼容视觉服务或本机 Tesseract。</p>
+              </div>
+            </div>
+            <div className="settings-grid">
+              <label className="field">
+                <span className="field-label">默认 OCR 服务</span>
+                <Select
+                  value={draft.ocr_provider}
+                  onChange={(_, data) => patch({ ocr_provider: data.value })}
+                >
+                  <option value="auto">自动选择可用服务</option>
+                  <option value="glm">GLM-OCR</option>
+                  <option value="openai">OpenAI 兼容视觉</option>
+                  <option value="tesseract">Tesseract</option>
+                </Select>
+              </label>
+              <label className="field">
+                <span className="field-label">GLM Base URL</span>
+                <Input
+                  value={draft.glm_base_url}
+                  onChange={(_, data) => patch({ glm_base_url: data.value })}
+                  placeholder="https://open.bigmodel.cn/api/paas/v4"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">GLM API Key</span>
+                <Input
+                  type="password"
+                  value={draft.glm_api_key}
+                  onChange={(_, data) => patch({ glm_api_key: data.value })}
+                  placeholder="可选"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">GLM OCR 模型</span>
+                <Input
+                  value={draft.glm_ocr_model}
+                  onChange={(_, data) => patch({ glm_ocr_model: data.value })}
+                  placeholder="glm-ocr"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">OpenAI 视觉地址</span>
+                <Input
+                  value={draft.ocr_openai_url}
+                  onChange={(_, data) => patch({ ocr_openai_url: data.value })}
+                  placeholder="https://.../v1"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">OpenAI 视觉 Key</span>
+                <Input
+                  type="password"
+                  value={draft.ocr_openai_api_key}
+                  onChange={(_, data) => patch({ ocr_openai_api_key: data.value })}
+                  placeholder="可选"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">OpenAI 视觉模型</span>
+                <Input
+                  value={draft.ocr_openai_model}
+                  onChange={(_, data) => patch({ ocr_openai_model: data.value })}
+                  placeholder="gpt-4o-mini"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">Tesseract 命令</span>
+                <Input
+                  value={draft.tesseract_command}
+                  onChange={(_, data) => patch({ tesseract_command: data.value })}
+                  placeholder="tesseract"
+                />
+              </label>
+            </div>
+            <div className="inline-note">
+              GLM-OCR 与 OpenAI 视觉服务使用图片 base64 的 /chat/completions 请求；
+              Tesseract 支持本机语言包。API Key 仅保存在本机设置中。
             </div>
           </section>
 

@@ -135,6 +135,14 @@ export interface AppSettings {
   hunyuan_api_key: string;
   hunyuan_model: string;
   argos_command: string;
+  ocr_provider: string;
+  glm_base_url: string;
+  glm_api_key: string;
+  glm_ocr_model: string;
+  ocr_openai_url: string;
+  ocr_openai_api_key: string;
+  ocr_openai_model: string;
+  tesseract_command: string;
   language: string;
   task: 'transcribe' | 'translate';
   device: 'auto' | 'cpu' | 'cuda' | 'npu' | 'metal';
@@ -927,5 +935,35 @@ export interface TranslationRecord {
   text: string;
   translated: string;
   detected_language: string | null;
+  latency_ms: number;
+}
+
+export interface OcrProvider {
+  id: string;
+  name: string;
+  kind: string;
+  model: string;
+  description: string;
+  available: boolean;
+}
+
+export interface OcrStatus {
+  default_provider: string;
+  resolved_provider: string | null;
+  providers: OcrProvider[];
+  languages: TranslationLanguage[];
+  demo: boolean;
+  history_count: number;
+}
+
+export interface OcrRecord {
+  id: string;
+  created_at: string;
+  provider: string;
+  model: string;
+  language: string;
+  text: string;
+  image_url: string;
+  filename: string;
   latency_ms: number;
 }

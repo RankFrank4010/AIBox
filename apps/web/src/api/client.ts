@@ -15,6 +15,8 @@ import type {
   TrainingStatus,
   TranslationRecord,
   TranslationStatus,
+  OcrRecord,
+  OcrStatus,
   SeparationJob,
   SeparationStatus,
   SeparationsPayload,
@@ -295,6 +297,16 @@ export const api = {
     request(`/api/translations/${encodeURIComponent(id)}`, {
       method: 'DELETE',
     }),
+  ocrStatus: () => request<OcrStatus>('/api/ocr/status'),
+  ocrHistory: (limit = 50) =>
+    request<{ records: OcrRecord[] }>(`/api/ocr?limit=${limit}`),
+  runOcr: (form: FormData) =>
+    request<{ record: OcrRecord }>('/api/ocr', {
+      method: 'POST',
+      body: form,
+    }),
+  deleteOcr: (id: string) =>
+    request(`/api/ocr/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   url: (path: string) => `${API_BASE}${path}`,
 };
 
