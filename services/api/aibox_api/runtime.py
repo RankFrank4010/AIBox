@@ -73,6 +73,7 @@ class RuntimeManager:
         self._demand: dict[str, deque[float]] = {
             "asr": deque(maxlen=2000),
             "tts": deque(maxlen=2000),
+            "image": deque(maxlen=2000),
             "llm": deque(maxlen=2000),
         }
         self._focus: str = ""

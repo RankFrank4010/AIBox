@@ -26,6 +26,14 @@ def test_services_first_blocks_new_llm(tmp_path):
         runtime.admit("llm")
 
 
+def test_image_demand_counts_as_service_pressure(tmp_path):
+    runtime = make_runtime(tmp_path)
+    assert runtime.compute_policy() == "balanced"
+    runtime.note_request("image")
+    assert runtime.service_pressure() is True
+    assert runtime.compute_policy() == "services"
+
+
 def test_scheduled_window_prioritizes_llm(tmp_path):
     runtime = make_runtime(
         tmp_path,
