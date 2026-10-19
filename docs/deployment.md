@@ -148,6 +148,31 @@ AIBOX_TRAIN_COMMAND="/opt/train-venv/bin/python /opt/train/finetune.py --base {b
 
 或使用 `AIBOX_DEMO_TRAINING=1` 演示。数据集与产物写入 `/data/training`。
 
+### 1panel-network 与 NewAPI 反向路由
+
+将 AIBox 容器加入 NewAPI 所在的 `1panel-network`：
+
+```bash
+docker run -d --name aibox \
+  --network 1panel-network \
+  -v /data/aibox:/data \
+  -e AIBOX_API_TOKEN="<AIBOX_TOKEN>" \
+  -e AIBOX_ALLOW_ADAPTER_COMMANDS=1 \
+  aibox:local
+```
+
+NewAPI 新增 OpenAI 类型渠道：
+
+```text
+Base URL: http://aibox:8765
+API Key:  <AIBOX_TOKEN>
+模型:     whisper-cpp-tiny
+```
+
+> NewAPI 渠道的 Base URL 不要带 `/v1`；NewAPI 会自行追加 `/v1/audio/transcriptions`。
+
+CPU 核显/老 CPU 如果没有 AVX，`faster-whisper` / CTranslate2 会因非法指令崩溃。此时可使用 `command` 社区 ASR 适配器调用 `whisper.cpp`，模型 ID 例如 `whisper-cpp-tiny`。长时间 CPU 推理需要把 Nginx 的 `proxy_read_timeout` 提高到 300s，否则网关会在 60s 返回 504。
+
 前置条件：
 
 - Docker 24+ 与 Compose v2；

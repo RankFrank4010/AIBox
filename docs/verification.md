@@ -122,6 +122,16 @@ container: 1Panel-new-api-0Vsg
 - WebUI 上传数据集、创建 QLoRA 任务、日志与产物展示通过；
 - 真实 Transformers / PEFT / DeepSpeed 训练未在本机运行；外部命令与演示路径已实现。
 
+## 四号服务器部署实测
+
+- AIBox 容器 `aibox` 已加入 `1panel-network`，健康检查通过；
+- NewAPI 新增 OpenAI 渠道 `AIBox Local ASR`，模型 `whisper-cpp-tiny`；
+- `GET /v1/models` 已包含 `whisper-cpp-tiny`；
+- 通过 `https://newapi.franj2.top/v1/audio/transcriptions` 上传英文测试 WAV，返回 200：
+  `Hello, this is AIBox running a local whisper transcription test. The audio never leaves this computer.`
+- 该服务器为 AMD A6-3400M（无 AVX），faster-whisper/CTranslate2 会非法指令崩溃，因此改用 whisper.cpp CPU 命令适配器；
+- 9 秒音频约 72 秒完成，Nginx 代理读超时已提高到 300s。
+
 ## 外部传输端到端
 
 在本机启动 HTTP/WS/gRPC/MRCP 服务后实测：
