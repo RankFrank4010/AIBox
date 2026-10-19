@@ -123,6 +123,8 @@ export interface AppSettings {
   llm_device: string;
   default_training_model: string;
   training_method: 'lora' | 'qlora' | 'full' | string;
+  compute_priority_mode: 'services_first' | 'llm_first' | 'auto' | 'scheduled' | string;
+  compute_priority_windows: PriorityWindow[];
   language: string;
   task: 'transcribe' | 'translate';
   device: 'auto' | 'cpu' | 'cuda' | 'npu' | 'metal';
@@ -263,8 +265,16 @@ export interface RuntimeStatus {  mode: string;
   demand: {
     asr: number;
     tts: number;
+    image?: number;
     llm: number;
     window_seconds: number;
+  };
+  compute_priority: {
+    mode: string;
+    effective: 'services' | 'llm' | 'balanced' | string;
+    in_llm_window: boolean;
+    service_pressure: boolean;
+    windows: PriorityWindow[];
   };
   max_loaded_models: number;
   idle_ttl_seconds: number;
@@ -865,4 +875,10 @@ export interface TrainingStatus {
 export interface TrainingLogs {
   lines: string[];
   text: string;
+}
+
+export interface PriorityWindow {
+  start: string;
+  end: string;
+  days: number[];
 }

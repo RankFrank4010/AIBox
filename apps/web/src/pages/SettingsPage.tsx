@@ -2,14 +2,18 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Button,
+  Input,
   Select,
   Slider,
   Switch,
 } from '@fluentui/react-components';
 import {
+  AddRegular,
   ArrowRightRegular,
+  BeakerRegular,
   ChatRegular,
   CheckmarkRegular,
+  DeleteRegular,
   FolderOpenRegular,
   GaugeRegular,
   ImageRegular,
@@ -50,6 +54,9 @@ export function SettingsPage() {
   const installedImages = (models?.installed ?? []).filter((model) => model.kind === 'image');
   const installedLlm = (models?.installed ?? []).filter((model) => model.kind === 'llm');
   const computeDevices = system?.devices?.devices ?? [];
+  const priorityWindows = draft?.compute_priority_windows ?? [];
+  const priorityEffective = system?.runtime?.compute_priority?.effective ?? 'balanced';
+  const priorityDays = ['日', '一', '二', '三', '四', '五', '六'];
   const dirty = useMemo(
     () => Boolean(draft && settings && JSON.stringify(draft) !== JSON.stringify(settings)),
     [draft, settings],
@@ -533,6 +540,125 @@ export function SettingsPage() {
             <div className="inline-note">
               数据并行会按设备分配 ASR / API 任务；张量与流水并行走 llama.cpp 的多 GPU
               切分。单卡设备会忽略多卡策略；切换策略后建议重新加载模型或重启服务。
+            </div>
+          </section>
+
+          <section className="panel settings-card">
+            <div className="settings-card-head">
+              <div className="settings-icon">
+                <BeakerRegular />
+              </div>
+              <div>
+                <h2>计算优先级与时段</h2>
+                <p>默认优先 ASR / TTS / 图像等普通服务；可设置特殊时段优先大模型，或自动按需求调节。</p>
+              </div>
+            </div>
+            <div className="settings-grid">
+              <label className="field">
+                <span className="field-label">优先级模式</span>
+                <Select
+                  value={draft.compute_priority_mode}
+                  onChange={(_, data) => patch({ compute_priority_mode: data.value })}
+                >
+                  <option value="services_first">普通服务优先（推荐）</option>
+                  <option value="llm_first">大模型优先</option>
+                  <option value="scheduled">按时间段规则</option>
+                  <option value="auto">自动平衡</option>
+                </Select>
+                <span className="field-hint">
+                  当前生效：{priorityEffective === 'llm' ? '大模型优先' : priorityEffective === 'services' ? '普通服务优先' : '平衡'}
+                </span>
+              </label>
+              <div className="field">
+                <span className="field-label">LLM 特殊时段</span>
+                <span className="field-hint">
+                  {priorityWindows.length
+                    ? `${priorityWindows.length} 条规则；时段内大模型优先`
+                    : '未设置，特殊时段不会自动切换'}
+                </span>
+              </div>
+            </div>
+            <div className="priority-windows">
+              {priorityWindows.map((window, index) => (
+                <div className="priority-window" key={`${window.start}-${window.end}-${index}`}>
+                  <div className="priority-time">
+                    <Input
+                      type="time"
+                      value={window.start}
+                      onChange={(_, data) => {
+                        const next = priorityWindows.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, start: data.value } : item,
+                        );
+                        patch({ compute_priority_windows: next });
+                      }}
+                    />
+                    <span>至</span>
+                    <Input
+                      type="time"
+                      value={window.end}
+                      onChange={(_, data) => {
+                        const next = priorityWindows.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, end: data.value } : item,
+                        );
+                        patch({ compute_priority_windows: next });
+                      }}
+                    />
+                  </div>
+                  <div className="priority-days">
+                    {priorityDays.map((label, day) => (
+                      <button
+                        key={label}
+                        type="button"
+                        className={window.days.includes(day) ? 'is-active' : ''}
+                        onClick={() => {
+                          const days = window.days.includes(day)
+                            ? window.days.filter((item) => item !== day)
+                            : [...window.days, day];
+                          const next = priorityWindows.map((item, itemIndex) =>
+                            itemIndex === index ? { ...item, days } : item,
+                          );
+                          patch({ compute_priority_windows: next });
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  <Button
+                    appearance="subtle"
+                    size="small"
+                    icon={<DeleteRegular />}
+                    onClick={() =>
+                      patch({
+                        compute_priority_windows: priorityWindows.filter(
+                          (_, itemIndex) => itemIndex !== index,
+                        ),
+                      })
+                    }
+                  >
+                    删除
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <Button
+              appearance="secondary"
+              size="small"
+              icon={<AddRegular />}
+              onClick={() =>
+                patch({
+                  compute_priority_windows: [
+                    ...priorityWindows,
+                    { start: '22:00', end: '08:00', days: [0, 1, 2, 3, 4, 5, 6] },
+                  ],
+                })
+              }
+            >
+              添加时段
+            </Button>
+            <div className="inline-note">
+              普通服务优先时，新 LLM 请求会在 ASR / TTS / 图像任务到来时暂缓；已运行的 LLM
+              生成不会强制中断。大模型优先时段内，普通服务会尽量让出显存。
             </div>
           </section>
 

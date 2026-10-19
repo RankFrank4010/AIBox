@@ -7082,3 +7082,65 @@ a {
   font-size: 7.5px;
   color: var(--muted-2);
 }
+
+.priority-windows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.priority-window {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(148, 163, 190, 0.03);
+}
+
+.priority-time {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.priority-time input {
+  width: 92px;
+}
+
+.priority-time span {
+  font-size: 8px;
+  color: var(--muted-2);
+}
+
+.priority-days {
+  display: flex;
+  gap: 3px;
+}
+
+.priority-days button {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 8px;
+  cursor: pointer;
+}
+
+.priority-days button.is-active {
+  border-color: rgba(127, 98, 255, 0.4);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+@media (max-width: 680px) {
+  .priority-window {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
