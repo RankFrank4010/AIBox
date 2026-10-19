@@ -173,6 +173,14 @@ API Key:  <AIBOX_TOKEN>
 
 CPU 核显/老 CPU 如果没有 AVX，`faster-whisper` / CTranslate2 会因非法指令崩溃。此时可使用 `command` 社区 ASR 适配器调用 `whisper.cpp`，模型 ID 例如 `whisper-cpp-tiny`。长时间 CPU 推理需要把 Nginx 的 `proxy_read_timeout` 提高到 300s，否则网关会在 60s 返回 504。
 
+如果 AIBox WebUI 只发布到宿主机回环地址（例如 `127.0.0.1:8766`），可通过 SSH 隧道访问：
+
+```bash
+ssh -L 8766:127.0.0.1:8766 frankrank@<server>
+```
+
+然后打开 `http://127.0.0.1:8766`。NewAPI 只需要容器网络内的 `http://aibox:8765`，不需要公开 AIBox 端口。
+
 前置条件：
 
 - Docker 24+ 与 Compose v2；
