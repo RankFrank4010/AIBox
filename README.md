@@ -26,6 +26,7 @@ AIBox 把模型下载、硬件探测、推理后端和生成工作流放进同�
 - **多设备与并行**：设备池、ASR 数据并行、llama.cpp 张量 / 流水切分；支持 `auto` / `single` / `data` / `tensor` / `pipeline` / `hybrid` 策略。
 - **计算优先级**：默认普通服务优先于 LLM；支持 LLM 专属时段、自动平衡与大模型优先模式。
 - **模型微调管理**：数据集上传校验、QLoRA / LoRA / 全量微调任务、训练日志、取消与产物下载；真实训练通过外部命令或演示运行器。
+- **文本翻译**：支持 LibreTranslate / Argos、Index-Translate、腾讯混元 Hy-MT2 与 OpenAI 兼容翻译网关，保留本地历史。
 - **社区适配**：声明式 `openai-http` / `command` 适配器，覆盖 FunASR、Moonshine、Piper、Kokoro、CosyVoice、F5-TTS、GPT-SoVITS、Fish Speech 等主流模型；内置 16 个配方模板，导入后默认停用。
 - **真实推理**：faster-whisper + CTranslate2（CPU / CUDA）；IndexTTS 通过独立 Python worker 加载，避免依赖冲突。
 - **转写工作台**：拖放音频、自动语言检测、VAD、beam size、词级时间戳、实时进度、取消任务。
@@ -75,6 +76,10 @@ AIBox 把模型下载、硬件探测、推理后端和生成工作流放进同�
 | 模型微调 |
 | --- |
 | ![模型微调](screenshots/training-result.png) |
+
+| 文本翻译 |
+| --- |
+| ![文本翻译](screenshots/translation.png) |
 
 | 社区适配 |
 | --- |
@@ -381,6 +386,18 @@ $env:AIBOX_LLM_MODEL="<NewAPI Model ID>"
 
 真实训练由 `AIBOX_TRAIN_COMMAND` 外部命令执行；`AIBOX_DEMO_TRAINING=1` 用于 UI 与 CI 演示。详见 [模型微调](docs/training.md)。
 
+### 文本翻译
+
+新增「文本翻译」页面，支持：
+
+- LibreTranslate（也适用于 Argos Translate HTTP 服务）；
+- 本机 Argos Translate CLI；
+- Index-Translate；
+- 腾讯混元 Hy-MT2；
+- 任意 OpenAI 兼容 `/v1/chat/completions` 翻译网关。
+
+Index-Translate 与混元默认走 OpenAI 兼容接口，也可以通过 NewAPI 暴露。翻译历史保存在本地 SQLite。详见 [文本翻译](docs/translation.md)。
+
 ## 社区适配
 
 AIBox 不要求所有模型都内置运行时。社区可以用声明式 manifest 把特殊模型接进来：
@@ -472,6 +489,11 @@ ASR 与 TTS 可以同时驻留；当显存 / 内存预算不足时，运行时�
 | `AIBOX_LLM_CONTEXT` | `8192` | llama-server 上下文长度 |
 | `AIBOX_DEMO_TRAINING` | `0` | 微调演示运行器 |
 | `AIBOX_TRAIN_COMMAND` | 空 | 外部训练命令模板 |
+| `AIBOX_DEMO_TRANSLATION` | `0` | 翻译演示运行器 |
+| `AIBOX_TRANSLATION_PROVIDER` | `auto` | 默认翻译服务 |
+| `AIBOX_LIBRE_URL` | 空 | LibreTranslate 地址 |
+| `AIBOX_INDEX_URL` | 空 | Index-Translate 兼容地址 |
+| `AIBOX_HUNYUAN_URL` | 空 | 混元 Hy-MT2 兼容地址 |
 | `AIBOX_ADAPTERS_DIR` | `<data>/adapters` | 社区适配器目录 |
 | `AIBOX_ALLOW_ADAPTER_COMMANDS` | `0` | 允许 command 适配器执行本机进程 |
 | `AIBOX_ALLOW_REMOTE_ADAPTERS` | `0` | 允许远程 HTTP 适配器；默认仅 localhost / 局域网 |

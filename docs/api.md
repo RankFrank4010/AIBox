@@ -328,6 +328,27 @@ GET  /api/training/artifacts/{job_id}/{file}
 
 真实训练由 `AIBOX_TRAIN_COMMAND` 执行；`AIBOX_DEMO_TRAINING=1` 为演示运行器。详见 [模型微调](training.md)。
 
+## 文本翻译
+
+```http
+GET    /api/translations/status
+GET    /api/translations
+POST   /api/translations
+DELETE /api/translations/{id}
+```
+
+```json
+{
+  "text": "Hello",
+  "source": "en",
+  "target": "zh",
+  "provider": "auto",
+  "model": null
+}
+```
+
+支持 `libre`、`argos`、`index`、`hunyuan`、`openai`、`demo`。详见 [文本翻译](translation.md)。
+
 ## 健康检查
 
 ```http
