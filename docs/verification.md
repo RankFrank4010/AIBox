@@ -6,7 +6,7 @@
 
 ```text
 python -m ruff check services/api        → All checks passed
-python -m pytest services/api/tests -q   → 40 passed
+python -m pytest services/api/tests -q   → 43 passed
 ```
 
 Windows 上测试进程偶发 `0xC0000005`（Python / 原生库退出阶段，堆栈落在 GC 或 pytest 源码读取），重跑即可通过；服务进程本身持续运行无异常。
@@ -115,6 +115,13 @@ container: 1Panel-new-api-0Vsg
 - 单卡环境自动退化为单设备；
 - 真实双卡机器未在本机验证；调度、命令生成与 API 流程已测试。
 
+## 计算优先级实测
+
+- 默认 `services_first`：存在 ASR 需求时 `admit("llm")` 被拒绝，普通服务 priority 高于 LLM；
+- `scheduled` + 全天窗口：LLM 优先，普通服务 priority 低于 LLM；
+- `auto`：窗口内 LLM 优先，窗口外普通服务需求时切回服务优先；
+- `/api/system.runtime.compute_priority` 返回模式、生效策略、窗口与压力状态。
+
 ## 模型微调实测
 
 - `AIBOX_DEMO_TRAINING=1` 下数据集上传、校验、任务、进度、日志、取消、产物、删除；
@@ -184,7 +191,7 @@ Whisper Small · NVIDIA CUDA · float16
 ```text
 pnpm --filter @aibox/web typecheck   → 通过
 pnpm --filter @aibox/web test        → 4 passed
-pnpm --filter @aibox/web build       → 通过（约 802 KB JS / 219 KB gzip）
+pnpm --filter @aibox/web build       → 通过（约 805 KB JS / 220 KB gzip）
 pnpm --filter @aibox/web build:desktop → 通过
 ```
 

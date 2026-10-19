@@ -94,6 +94,38 @@ PATCH /api/settings
 }
 ```
 
+## 计算优先级
+
+默认 **普通服务优先**：ASR / TTS / 图像等任务需要显存时，空闲的 LLM 会被换出；
+新的 LLM 请求在普通服务有任务时会暂缓，但不会强制中断正在流式生成的 LLM。
+
+设置字段：
+
+```json
+{
+  "compute_priority_mode": "services_first",
+  "compute_priority_windows": [
+    {"start": "22:00", "end": "08:00", "days": [1, 2, 3, 4, 5]}
+  ]
+}
+```
+
+模式：
+
+| 模式 | 行为 |
+| --- | --- |
+| `services_first` | 普通服务优先；无普通服务时 LLM 可用剩余资源 |
+| `llm_first` | 始终优先大模型 |
+| `scheduled` | 特殊时段内 LLM 优先，其余时间普通服务优先 |
+| `auto` | 特殊时段优先 LLM；否则按普通服务需求自动平衡 |
+
+时段使用服务器本地时间；`days` 采用周日=0、周一=1 … 周六=6。支持跨午夜，例如
+`22:00 -> 08:00`。`/api/system` 的 `runtime.compute_priority` 返回当前生效策略、
+是否处于 LLM 时段与普通服务压力。
+
+> 已运行的 LLM 流不会因为普通服务到来而被强行终止；新请求会被暂缓，空闲 LLM
+> 会在普通服务需要显存时被换出。
+
 ## 限制
 
 - 张量 / 流水并行目前只接本地 llama.cpp；ComfyUI / Diffusers 的多卡切分由上游工作流负责。

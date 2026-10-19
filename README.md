@@ -24,6 +24,7 @@ AIBox 把模型下载、硬件探测、推理后端和生成工作流放进同�
 - **多种加载**：已安装模型可在转写 / 合成页即时切换；ASR 与 TTS 可同时驻留，弹性调度按显存 / 内存与需求换入换出。
 - **弹性模式**：自动、均衡、ASR 优先、TTS 优先、时间片、自定义；可配置空闲卸载、切换窗口、常驻上限、显存 / 内存预留与固定驻留类型。
 - **多设备与并行**：设备池、ASR 数据并行、llama.cpp 张量 / 流水切分；支持 `auto` / `single` / `data` / `tensor` / `pipeline` / `hybrid` 策略。
+- **计算优先级**：默认普通服务优先于 LLM；支持 LLM 专属时段、自动平衡与大模型优先模式。
 - **模型微调管理**：数据集上传校验、QLoRA / LoRA / 全量微调任务、训练日志、取消与产物下载；真实训练通过外部命令或演示运行器。
 - **社区适配**：声明式 `openai-http` / `command` 适配器，覆盖 FunASR、Moonshine、Piper、Kokoro、CosyVoice、F5-TTS、GPT-SoVITS、Fish Speech 等主流模型；内置 16 个配方模板，导入后默认停用。
 - **真实推理**：faster-whisper + CTranslate2（CPU / CUDA）；IndexTTS 通过独立 Python worker 加载，避免依赖冲突。
