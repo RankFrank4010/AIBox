@@ -221,6 +221,11 @@ class LLMEngine:
         model, provider = self.resolve_model(model_id)
         if self.runtime:
             self.runtime.note_request("llm")
+            if provider == "llama-cpp":
+                try:
+                    self.runtime.admit("llm")
+                except RuntimeCapacityError as exc:
+                    raise LLMUnavailable(str(exc)) from exc
         payload_messages = list(messages)
         if system_prompt and not any(
             item.get("role") == "system" for item in payload_messages

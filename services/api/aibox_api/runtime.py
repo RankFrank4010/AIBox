@@ -24,6 +24,7 @@ import uuid
 from collections import Counter, deque
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
+from datetime import datetime
 from typing import Any
 
 from .catalog import get_model
@@ -173,11 +174,69 @@ class RuntimeManager:
         raw = self.config.settings().get("elastic_pinned_kinds") or []
         return {str(kind) for kind in raw if kind in {"asr", "tts"}}
 
+    def _priority_windows(self) -> list[dict[str, Any]]:
+        raw = self.config.settings().get("compute_priority_windows") or []
+        return [item for item in raw if isinstance(item, dict)] if isinstance(raw, list) else []
+
+    @staticmethod
+    def _minutes(value: str) -> int | None:
+        try:
+            hour, minute = str(value).split(":", 1)
+            result = int(hour) * 60 + int(minute)
+        except (ValueError, AttributeError):
+            return None
+        return result if 0 <= result < 24 * 60 else None
+
+    def _window_active(self, window: dict[str, Any], now: datetime) -> bool:
+        start = self._minutes(str(window.get("start") or ""))
+        end = self._minutes(str(window.get("end") or ""))
+        if start is None or end is None or start == end:
+            return False
+        days = {int(day) for day in window.get("days") or range(7) if str(day).isdigit()}
+        if not days:
+            days = set(range(7))
+        # Python weekday is Monday=0; the UI/API uses Sunday=0.
+        today = (now.weekday() + 1) % 7
+        current = now.hour * 60 + now.minute
+        if start < end:
+            return today in days and start <= current < end
+        # Overnight window: the start day owns the first part, the next day the tail.
+        if current >= start:
+            return today in days
+        previous = (today - 1) % 7
+        return previous in days and current < end
+
+    def in_llm_priority_window(self, now: datetime | None = None) -> bool:
+        now = now or datetime.now()
+        return any(self._window_active(window, now) for window in self._priority_windows())
+
+    def service_pressure(self) -> bool:
+        counts = self._demand_counts()
+        if any(counts.get(kind, 0) > 0 for kind in ("asr", "tts", "image")):
+            return True
+        return any(self._busy.get(kind, 0) > 0 for kind in ("asr", "tts", "image"))
+
+    def compute_policy(self, now: datetime | None = None) -> str:
+        mode = str(self.config.settings().get("compute_priority_mode") or "services_first")
+        in_window = self.in_llm_priority_window(now)
+        if mode == "llm_first" or (mode == "scheduled" and in_window):
+            return "llm"
+        if mode == "auto" and in_window:
+            return "llm"
+        if mode in {"services_first", "auto"}:
+            return "services" if self.service_pressure() else "balanced"
+        return "services"
+
     def _priority(self, kind: str, mode: str | None = None) -> int:
         mode = mode or self._effective_mode()
         pinned = self._pinned_kinds()
         if kind in pinned:
             return 20
+        compute_policy = self.compute_policy()
+        if compute_policy == "llm":
+            return 12 if kind == "llm" else 2
+        if compute_policy == "services":
+            return 10 if kind != "llm" else 2
         if mode == "asr_focus":
             return 8 if kind == "asr" else 1
         if mode == "tts_focus":
@@ -192,6 +251,15 @@ class RuntimeManager:
             return 4
         return 4
 
+    def admit(self, kind: str) -> None:
+        """Reject a new LLM request while ordinary services are under pressure."""
+        if kind == "llm" and self.compute_policy() == "services" and self.service_pressure():
+            raise RuntimeCapacityError(
+                "其他服务正在使用计算资源，LLM 请求已暂缓；"
+                "可在设置中调整计算优先级或 LLM 优先时段。",
+                self.status(),
+            )
+
     # ------------------------------------------------------------------- loads
     def ensure_capacity(self, kind: str, model_id: str) -> str | None:
         spec = get_model(model_id)
@@ -203,6 +271,12 @@ class RuntimeManager:
             if current and current.model_id == model_id:
                 current.last_used = time.monotonic()
                 return None
+            if kind == "llm" and self.compute_policy() == "services" and self.service_pressure():
+                raise RuntimeCapacityError(
+                    "其他服务正在使用计算资源，LLM 模型暂不加载；"
+                    "可在设置中调整计算优先级或 LLM 优先时段。",
+                    self.status(),
+                )
 
             settings = self.config.settings()
             max_loaded = max(1, min(4, int(settings.get("elastic_max_loaded_models") or 4)))
@@ -339,7 +413,12 @@ class RuntimeManager:
         ]
         if not candidates:
             return False
-        candidates.sort(key=lambda item: item.last_used)
+        candidates.sort(
+            key=lambda item: (
+                self._priority(item.kind),
+                item.last_used,
+            )
+        )
         return self._unload_locked(candidates[0].kind)
 
     def _evict_for(self, needed_gb: float, requested_kind: str, mode: str) -> bool:
@@ -466,6 +545,15 @@ class RuntimeManager:
                     "window_seconds": int(
                         settings.get("elastic_switch_interval_seconds") or 300
                     ),
+                },
+                "compute_priority": {
+                    "mode": str(
+                        settings.get("compute_priority_mode") or "services_first"
+                    ),
+                    "effective": self.compute_policy(),
+                    "in_llm_window": self.in_llm_priority_window(),
+                    "service_pressure": self.service_pressure(),
+                    "windows": self._priority_windows(),
                 },
                 "max_loaded_models": int(
                     settings.get("elastic_max_loaded_models") or 4

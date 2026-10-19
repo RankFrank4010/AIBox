@@ -305,6 +305,7 @@ class ImageEngine:
                 warning = None
             elif chosen == "diffusers":
                 if self.runtime:
+                    self.runtime.note_request("image")
                     self.runtime.begin("image")
                 try:
                     paths = self._diffusers(

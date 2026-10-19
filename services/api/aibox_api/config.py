@@ -21,6 +21,15 @@ def _env_bool(name: str, default: bool = False) -> bool:
     return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _valid_clock(value: str) -> bool:
+    try:
+        hour_text, minute_text = value.split(":", 1)
+        hour, minute = int(hour_text), int(minute_text)
+    except (ValueError, AttributeError):
+        return False
+    return 0 <= hour <= 23 and 0 <= minute <= 59
+
+
 def default_data_dir() -> Path:
     """Return the per-user AIBox data directory for the current platform."""
     override = os.getenv("AIBOX_DATA_DIR")
@@ -63,6 +72,8 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "llm_device": "auto",
     "default_training_model": "Qwen/Qwen3-8B",
     "training_method": "qlora",
+    "compute_priority_mode": "services_first",
+    "compute_priority_windows": [],
     "language": "auto",
     "task": "transcribe",
     "device": "auto",
@@ -167,6 +178,35 @@ def _coerce_settings(raw: dict[str, Any]) -> dict[str, Any]:
             settings[key] = "auto"
     if settings.get("training_method") not in {"lora", "qlora", "full"}:
         settings["training_method"] = "qlora"
+    if settings.get("compute_priority_mode") not in {
+        "services_first",
+        "llm_first",
+        "auto",
+        "scheduled",
+    }:
+        settings["compute_priority_mode"] = "services_first"
+    windows: list[dict[str, Any]] = []
+    raw_windows = settings.get("compute_priority_windows")
+    if isinstance(raw_windows, list):
+        for item in raw_windows[:16]:
+            if not isinstance(item, dict):
+                continue
+            start = str(item.get("start") or "")
+            end = str(item.get("end") or "")
+            if not _valid_clock(start) or not _valid_clock(end):
+                continue
+            days = []
+            for day in item.get("days") or list(range(7)):
+                try:
+                    value = int(day)
+                except (TypeError, ValueError):
+                    continue
+                if 0 <= value <= 6:
+                    days.append(value)
+            if not days:
+                days = list(range(7))
+            windows.append({"start": start, "end": end, "days": sorted(set(days))})
+    settings["compute_priority_windows"] = windows
     if settings["elastic_mode"] not in {
         "auto",
         "balanced",
