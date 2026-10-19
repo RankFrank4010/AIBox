@@ -84,6 +84,14 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "hunyuan_api_key": "",
     "hunyuan_model": "hunyuan-mt2",
     "argos_command": "argos-translate",
+    "ocr_provider": "auto",
+    "glm_base_url": "https://open.bigmodel.cn/api/paas/v4",
+    "glm_api_key": "",
+    "glm_ocr_model": "glm-ocr",
+    "ocr_openai_url": "",
+    "ocr_openai_api_key": "",
+    "ocr_openai_model": "gpt-4o-mini",
+    "tesseract_command": "tesseract",
     "language": "auto",
     "task": "transcribe",
     "device": "auto",
@@ -227,6 +235,14 @@ def _coerce_settings(raw: dict[str, Any]) -> dict[str, Any]:
         "demo",
     }:
         settings["translation_provider"] = "auto"
+    if settings.get("ocr_provider") not in {
+        "auto",
+        "glm",
+        "openai",
+        "tesseract",
+        "demo",
+    }:
+        settings["ocr_provider"] = "auto"
     if settings["elastic_mode"] not in {
         "auto",
         "balanced",
@@ -381,6 +397,37 @@ class AppConfig:
     argos_command: str = field(
         default_factory=lambda: os.getenv("AIBOX_ARGOS_COMMAND", "argos-translate")
     )
+    demo_ocr: bool = field(
+        default_factory=lambda: _env_bool("AIBOX_DEMO_OCR", False)
+    )
+    ocr_provider: str = field(
+        default_factory=lambda: os.getenv("AIBOX_OCR_PROVIDER", "auto")
+    )
+    glm_api_key: str | None = field(
+        default_factory=lambda: os.getenv("AIBOX_GLM_API_KEY")
+        or os.getenv("GLM_API_KEY")
+        or None
+    )
+    glm_base_url: str = field(
+        default_factory=lambda: os.getenv(
+            "AIBOX_GLM_BASE_URL", "https://open.bigmodel.cn/api/paas/v4"
+        ).rstrip("/")
+    )
+    glm_ocr_model: str = field(
+        default_factory=lambda: os.getenv("AIBOX_GLM_OCR_MODEL", "glm-ocr")
+    )
+    ocr_openai_url: str = field(
+        default_factory=lambda: os.getenv("AIBOX_OCR_OPENAI_URL", "").rstrip("/")
+    )
+    ocr_openai_api_key: str | None = field(
+        default_factory=lambda: os.getenv("AIBOX_OCR_OPENAI_API_KEY") or None
+    )
+    ocr_openai_model: str = field(
+        default_factory=lambda: os.getenv("AIBOX_OCR_OPENAI_MODEL", "gpt-4o-mini")
+    )
+    tesseract_command: str = field(
+        default_factory=lambda: os.getenv("AIBOX_TESSERACT_COMMAND", "tesseract")
+    )
     allow_adapter_commands: bool = field(
         default_factory=lambda: _env_bool("AIBOX_ALLOW_ADAPTER_COMMANDS", False)
     )
@@ -437,6 +484,7 @@ class AppConfig:
         self.separation_outputs_dir = self.data_dir / "separations"
         self.video_outputs_dir = self.data_dir / "videos"
         self.training_dir = self.data_dir / "training"
+        self.ocr_dir = self.data_dir / "ocr"
         self.training_datasets_dir = self.training_dir / "datasets"
         self.training_outputs_dir = self.training_dir / "runs"
         self.training_logs_dir = self.training_dir / "logs"
@@ -464,6 +512,7 @@ class AppConfig:
             self.training_datasets_dir,
             self.training_outputs_dir,
             self.training_logs_dir,
+            self.ocr_dir,
             self.adapters_dir,
             self.uploads_dir,
             self.exports_dir,

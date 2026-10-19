@@ -44,6 +44,8 @@ from .models import (
     list_installed,
     storage_info,
 )
+from .ocr import OcrService
+from .ocr_store import OcrStore
 from .runtime import RuntimeManager
 from .separation import SeparationEngine
 from .separation_jobs import SeparationJobs
@@ -58,6 +60,7 @@ from .transports.grpc_service import start_grpc_server, stop_grpc_server
 from .transports.images_api import create_images_router, create_openai_images_router
 from .transports.llm_api import create_llm_router, create_openai_chat_router
 from .transports.mrcp import start_mrcp_server, stop_mrcp_server
+from .transports.ocr_api import create_ocr_router
 from .transports.openai_api import create_openai_router
 from .transports.separation_api import create_separation_router
 from .transports.training_api import create_training_router
@@ -108,6 +111,8 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     training_jobs = TrainingJobs(cfg, training_store, training_engine)
     translation_service = TranslationService(cfg)
     translation_store = TranslationStore(cfg.database_path)
+    ocr_service = OcrService(cfg)
+    ocr_store = OcrStore(cfg.database_path)
     jobs = TranscriptionJobs(
         cfg,
         store,
@@ -296,6 +301,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     app.include_router(
         create_translation_router(translation_service, translation_store)
     )
+    app.include_router(create_ocr_router(cfg, ocr_service, ocr_store))
     app.include_router(create_websocket_router(cfg, gateway))
 
     @app.exception_handler(ExternalServiceError)
