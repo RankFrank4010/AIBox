@@ -128,8 +128,16 @@ class TranslationService:
             provider,
         )
 
+    def _configured_provider(self) -> str:
+        configured = str(
+            self.config.settings().get("translation_provider") or "auto"
+        )
+        if configured == "auto" and self.config.translation_provider != "auto":
+            return self.config.translation_provider
+        return configured
+
     def resolve_provider(self, requested: str | None = None) -> str:
-        requested = (requested or self.config.settings().get("translation_provider") or "auto").strip()
+        requested = (requested or self._configured_provider() or "auto").strip()
         if requested in PROVIDER_IDS and requested != "auto":
             if not self._provider_available(requested):
                 raise TranslationError(f"{self.provider_name(requested)} 尚未配置或不可用。")
@@ -165,9 +173,7 @@ class TranslationService:
         except TranslationError:
             resolved = None
         return {
-            "default_provider": str(
-                self.config.settings().get("translation_provider") or "auto"
-            ),
+            "default_provider": self._configured_provider(),
             "resolved_provider": resolved,
             "providers": providers,
             "languages": list(LANGUAGES),
