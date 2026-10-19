@@ -163,6 +163,8 @@ class ExternalAsrGateway:
             return self._default_installed(installed)
 
         key = raw.lower()
+        if key in installed:
+            return installed[key]
         mapped = MODEL_ALIASES.get(key, key)
         if mapped is None:
             return self._default_installed(installed)
