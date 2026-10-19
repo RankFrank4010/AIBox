@@ -74,6 +74,16 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "training_method": "qlora",
     "compute_priority_mode": "services_first",
     "compute_priority_windows": [],
+    "translation_provider": "auto",
+    "libre_url": "",
+    "libre_api_key": "",
+    "index_url": "",
+    "index_api_key": "",
+    "index_model": "Index-Translate",
+    "hunyuan_url": "",
+    "hunyuan_api_key": "",
+    "hunyuan_model": "hunyuan-mt2",
+    "argos_command": "argos-translate",
     "language": "auto",
     "task": "transcribe",
     "device": "auto",
@@ -207,6 +217,16 @@ def _coerce_settings(raw: dict[str, Any]) -> dict[str, Any]:
                 days = list(range(7))
             windows.append({"start": start, "end": end, "days": sorted(set(days))})
     settings["compute_priority_windows"] = windows
+    if settings.get("translation_provider") not in {
+        "auto",
+        "libre",
+        "argos",
+        "index",
+        "hunyuan",
+        "openai",
+        "demo",
+    }:
+        settings["translation_provider"] = "auto"
     if settings["elastic_mode"] not in {
         "auto",
         "balanced",
@@ -327,6 +347,39 @@ class AppConfig:
     )
     training_command: str = field(
         default_factory=lambda: os.getenv("AIBOX_TRAIN_COMMAND", "")
+    )
+    demo_translation: bool = field(
+        default_factory=lambda: _env_bool("AIBOX_DEMO_TRANSLATION", False)
+    )
+    translation_provider: str = field(
+        default_factory=lambda: os.getenv("AIBOX_TRANSLATION_PROVIDER", "auto")
+    )
+    libre_url: str = field(
+        default_factory=lambda: os.getenv("AIBOX_LIBRE_URL", "").rstrip("/")
+    )
+    libre_api_key: str | None = field(
+        default_factory=lambda: os.getenv("AIBOX_LIBRE_API_KEY") or None
+    )
+    index_url: str = field(
+        default_factory=lambda: os.getenv("AIBOX_INDEX_URL", "").rstrip("/")
+    )
+    index_api_key: str | None = field(
+        default_factory=lambda: os.getenv("AIBOX_INDEX_API_KEY") or None
+    )
+    index_model: str = field(
+        default_factory=lambda: os.getenv("AIBOX_INDEX_MODEL", "Index-Translate")
+    )
+    hunyuan_url: str = field(
+        default_factory=lambda: os.getenv("AIBOX_HUNYUAN_URL", "").rstrip("/")
+    )
+    hunyuan_api_key: str | None = field(
+        default_factory=lambda: os.getenv("AIBOX_HUNYUAN_API_KEY") or None
+    )
+    hunyuan_model: str = field(
+        default_factory=lambda: os.getenv("AIBOX_HUNYUAN_MODEL", "hunyuan-mt2")
+    )
+    argos_command: str = field(
+        default_factory=lambda: os.getenv("AIBOX_ARGOS_COMMAND", "argos-translate")
     )
     allow_adapter_commands: bool = field(
         default_factory=lambda: _env_bool("AIBOX_ALLOW_ADAPTER_COMMANDS", False)

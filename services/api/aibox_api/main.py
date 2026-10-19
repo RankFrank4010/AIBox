@@ -51,6 +51,8 @@ from .separation_store import SeparationStore
 from .store import TranscriptionStore, render_export
 from .training import TrainingEngine, TrainingJobs
 from .training_store import TrainingStore
+from .translation import TranslationService
+from .translation_store import TranslationStore
 from .transports.community_api import create_community_router
 from .transports.grpc_service import start_grpc_server, stop_grpc_server
 from .transports.images_api import create_images_router, create_openai_images_router
@@ -59,6 +61,7 @@ from .transports.mrcp import start_mrcp_server, stop_mrcp_server
 from .transports.openai_api import create_openai_router
 from .transports.separation_api import create_separation_router
 from .transports.training_api import create_training_router
+from .transports.translation_api import create_translation_router
 from .transports.tts_api import create_openai_tts_router, create_tts_router
 from .transports.video_api import create_video_router
 from .transports.websocket_asr import create_websocket_router
@@ -103,6 +106,8 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     video_jobs = VideoJobs(cfg, video_store, video_engine)
     training_engine = TrainingEngine(cfg, training_store)
     training_jobs = TrainingJobs(cfg, training_store, training_engine)
+    translation_service = TranslationService(cfg)
+    translation_store = TranslationStore(cfg.database_path)
     jobs = TranscriptionJobs(
         cfg,
         store,
@@ -288,6 +293,9 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         )
     )
     app.include_router(create_community_router(cfg, community))
+    app.include_router(
+        create_translation_router(translation_service, translation_store)
+    )
     app.include_router(create_websocket_router(cfg, gateway))
 
     @app.exception_handler(ExternalServiceError)
