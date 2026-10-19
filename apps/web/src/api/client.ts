@@ -13,6 +13,8 @@ import type {
   TrainingJob,
   TrainingLogs,
   TrainingStatus,
+  TranslationRecord,
+  TranslationStatus,
   SeparationJob,
   SeparationStatus,
   SeparationsPayload,
@@ -272,6 +274,27 @@ export const api = {
     request<TrainingLogs>(
       `/api/training/jobs/${encodeURIComponent(id)}/logs?tail=${tail}`,
     ),
+  translationStatus: () =>
+    request<TranslationStatus>('/api/translations/status'),
+  translations: (limit = 50) =>
+    request<{ translations: TranslationRecord[] }>(
+      `/api/translations?limit=${limit}`,
+    ),
+  translate: (payload: {
+    text: string;
+    source: string;
+    target: string;
+    provider: string;
+    model?: string;
+  }) =>
+    request<{ translation: TranslationRecord }>('/api/translations', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  deleteTranslation: (id: string) =>
+    request(`/api/translations/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }),
   url: (path: string) => `${API_BASE}${path}`,
 };
 

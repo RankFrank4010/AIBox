@@ -7,6 +7,7 @@ import './styles/images.css';
 import './styles/separations.css';
 import './styles/videos.css';
 import './styles/training.css';
+import './styles/translation.css';
 import './styles/chat.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

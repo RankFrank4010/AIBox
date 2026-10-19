@@ -125,6 +125,16 @@ export interface AppSettings {
   training_method: 'lora' | 'qlora' | 'full' | string;
   compute_priority_mode: 'services_first' | 'llm_first' | 'auto' | 'scheduled' | string;
   compute_priority_windows: PriorityWindow[];
+  translation_provider: string;
+  libre_url: string;
+  libre_api_key: string;
+  index_url: string;
+  index_api_key: string;
+  index_model: string;
+  hunyuan_url: string;
+  hunyuan_api_key: string;
+  hunyuan_model: string;
+  argos_command: string;
   language: string;
   task: 'transcribe' | 'translate';
   device: 'auto' | 'cpu' | 'cuda' | 'npu' | 'metal';
@@ -881,4 +891,41 @@ export interface PriorityWindow {
   start: string;
   end: string;
   days: number[];
+}
+
+export interface TranslationProvider {
+  id: string;
+  name: string;
+  kind: string;
+  model: string;
+  description: string;
+  available: boolean;
+}
+
+export interface TranslationLanguage {
+  code: string;
+  name: string;
+}
+
+export interface TranslationStatus {
+  default_provider: string;
+  resolved_provider: string | null;
+  providers: TranslationProvider[];
+  languages: TranslationLanguage[];
+  demo: boolean;
+  history_count: number;
+}
+
+export interface TranslationRecord {
+  id: string;
+  created_at: string;
+  source: string;
+  target: string;
+  provider: string;
+  provider_name?: string;
+  model: string;
+  text: string;
+  translated: string;
+  detected_language: string | null;
+  latency_ms: number;
 }

@@ -18,6 +18,7 @@ import {
   GaugeRegular,
   ImageRegular,
   InfoRegular,
+  LocalLanguageRegular,
   SaveRegular,
   SettingsRegular,
   Speaker2Regular,
@@ -659,6 +660,113 @@ export function SettingsPage() {
             <div className="inline-note">
               普通服务优先时，新 LLM 请求会在 ASR / TTS / 图像任务到来时暂缓；已运行的 LLM
               生成不会强制中断。大模型优先时段内，普通服务会尽量让出显存。
+            </div>
+          </section>
+
+          <section className="panel settings-card">
+            <div className="settings-card-head">
+              <div className="settings-icon">
+                <LocalLanguageRegular />
+              </div>
+              <div>
+                <h2>翻译服务</h2>
+                <p>配置 LibreTranslate / Argos、Index-Translate、腾讯混元 Hy-MT2 或 OpenAI 兼容翻译网关。</p>
+              </div>
+            </div>
+            <div className="settings-grid">
+              <label className="field">
+                <span className="field-label">默认翻译服务</span>
+                <Select
+                  value={draft.translation_provider}
+                  onChange={(_, data) => patch({ translation_provider: data.value })}
+                >
+                  <option value="auto">自动选择可用服务</option>
+                  <option value="libre">LibreTranslate / Argos HTTP</option>
+                  <option value="argos">Argos Translate CLI</option>
+                  <option value="index">Index-Translate</option>
+                  <option value="hunyuan">腾讯混元 Hy-MT2</option>
+                  <option value="openai">OpenAI 兼容翻译网关</option>
+                </Select>
+              </label>
+              <label className="field">
+                <span className="field-label">LibreTranslate 地址</span>
+                <Input
+                  value={draft.libre_url}
+                  onChange={(_, data) => patch({ libre_url: data.value })}
+                  placeholder="http://127.0.0.1:5000"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">LibreTranslate API Key</span>
+                <Input
+                  type="password"
+                  value={draft.libre_api_key}
+                  onChange={(_, data) => patch({ libre_api_key: data.value })}
+                  placeholder="可选"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">Index-Translate 地址</span>
+                <Input
+                  value={draft.index_url}
+                  onChange={(_, data) => patch({ index_url: data.value })}
+                  placeholder="https://.../v1"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">Index-Translate Key</span>
+                <Input
+                  type="password"
+                  value={draft.index_api_key}
+                  onChange={(_, data) => patch({ index_api_key: data.value })}
+                  placeholder="可选"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">Index-Translate 模型</span>
+                <Input
+                  value={draft.index_model}
+                  onChange={(_, data) => patch({ index_model: data.value })}
+                  placeholder="Index-Translate"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">混元 Hy-MT2 地址</span>
+                <Input
+                  value={draft.hunyuan_url}
+                  onChange={(_, data) => patch({ hunyuan_url: data.value })}
+                  placeholder="https://.../v1"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">混元 API Key</span>
+                <Input
+                  type="password"
+                  value={draft.hunyuan_api_key}
+                  onChange={(_, data) => patch({ hunyuan_api_key: data.value })}
+                  placeholder="可选"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">混元模型</span>
+                <Input
+                  value={draft.hunyuan_model}
+                  onChange={(_, data) => patch({ hunyuan_model: data.value })}
+                  placeholder="hunyuan-mt2"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">Argos 命令</span>
+                <Input
+                  value={draft.argos_command}
+                  onChange={(_, data) => patch({ argos_command: data.value })}
+                  placeholder="argos-translate"
+                />
+              </label>
+            </div>
+            <div className="inline-note">
+              LibreTranslate 与 Argos 走本地 / 局域网服务；Index-Translate、混元与 OpenAI
+              兼容网关使用 /v1/chat/completions。API Key 仅保存在本机设置中。
             </div>
           </section>
 
