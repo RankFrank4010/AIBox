@@ -349,6 +349,18 @@ DELETE /api/translations/{id}
 
 支持 `libre`、`argos`、`index`、`hunyuan`、`openai`、`demo`。详见 [文本翻译](translation.md)。
 
+## 图片文字识别
+
+```http
+GET    /api/ocr/status
+GET    /api/ocr
+POST   /api/ocr
+GET    /api/ocr/images/{id}
+DELETE /api/ocr/{id}
+```
+
+`POST /api/ocr` multipart 字段：`file`、`provider`、`model`、`language`。支持 GLM-OCR、OpenAI 兼容视觉、Tesseract。详见 [图片文字识别](ocr.md)。
+
 ## 健康检查
 
 ```http

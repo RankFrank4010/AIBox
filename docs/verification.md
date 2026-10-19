@@ -6,7 +6,7 @@
 
 ```text
 python -m ruff check services/api        → All checks passed
-python -m pytest services/api/tests -q   → 48 passed
+python -m pytest services/api/tests -q   → 51 passed
 ```
 
 Windows 上测试进程偶发 `0xC0000005`（Python / 原生库退出阶段，堆栈落在 GC 或 pytest 源码读取），重跑即可通过；服务进程本身持续运行无异常。
@@ -191,13 +191,13 @@ Whisper Small · NVIDIA CUDA · float16
 ```text
 pnpm --filter @aibox/web typecheck   → 通过
 pnpm --filter @aibox/web test        → 4 passed
-pnpm --filter @aibox/web build       → 通过（约 816 KB JS / 222 KB gzip）
+pnpm --filter @aibox/web build       → 通过（约 826 KB JS / 224 KB gzip）
 pnpm --filter @aibox/web build:desktop → 通过
 ```
 
 Playwright 页面检查：
 
-- 16 个桌面页面状态 + 13 个移动端页面：总览、模型库、社区适配、转写、转写结果（查询参数）、语音合成、语言模型、文本翻译、模型微调、图像生成、视频生成、人声分离、硬件、服务接入、路线图、设置；
+- 17 个桌面页面状态 + 14 个移动端页面：总览、模型库、社区适配、转写、转写结果（查询参数）、语音合成、语言模型、文本翻译、图片文字识别、模型微调、图像生成、视频生成、人声分离、硬件、服务接入、路线图、设置；
 - 1440px 与 390px 两套视口；
 - `document.body.scrollWidth == innerWidth`，无水平溢出；
 - 0 个 console error / pageerror；
@@ -227,6 +227,13 @@ pnpm --filter @aibox/desktop check
 - LibreTranslate：请求体、`translatedText`、`detectedLanguage` 解析测试通过；
 - Index-Translate / 混元 OpenAI 兼容：`/v1/chat/completions` 地址、Bearer Key、模型与翻译提示词测试通过；
 - 真实 LibreTranslate / Index-Translate / 混元服务需要用户提供地址和凭据，本机未验证上游推理质量。
+
+## 图片文字识别实测
+
+- 演示 OCR：上传 PNG、返回结果、历史、原图读取、删除全部通过；
+- 非图片上传返回 400；
+- GLM-OCR：`/chat/completions` 地址、Bearer Key、模型、base64 图片与识别提示词测试通过；
+- 真实 GLM-OCR / OpenAI 视觉 / Tesseract 需要用户提供 Key、服务或语言包，本机未验证上游识别质量。
 
 ## 部署
 
