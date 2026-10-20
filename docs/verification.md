@@ -6,7 +6,7 @@
 
 ```text
 python -m ruff check services/api        → All checks passed
-python -m pytest services/api/tests -q   → 51 passed
+python -m pytest services/api/tests -q   → 52 passed
 ```
 
 Windows 上测试进程偶发 `0xC0000005`（Python / 原生库退出阶段，堆栈落在 GC 或 pytest 源码读取），重跑即可通过；服务进程本身持续运行无异常。
@@ -234,6 +234,14 @@ pnpm --filter @aibox/desktop check
 - 非图片上传返回 400；
 - GLM-OCR：`/chat/completions` 地址、Bearer Key、模型、base64 图片与识别提示词测试通过；
 - 真实 GLM-OCR / OpenAI 视觉 / Tesseract 需要用户提供 Key、服务或语言包，本机未验证上游识别质量。
+
+## 统一协议与 SDK 实测
+
+- `GET /api/protocol` 返回 `aibox-unified` 1.0、能力、14 个端点与任务状态；
+- 所有 HTTP 响应带 `X-AIBox-Protocol: 1.0`；
+- Python SDK 3 个测试通过：统一头、错误归一化、任务轮询；
+- TypeScript SDK `tsc --noEmit` 通过；
+- OpenAPI 3.1.0 JSON 可解析，12 个核心路径。
 
 ## 部署
 

@@ -28,6 +28,7 @@ AIBox 把模型下载、硬件探测、推理后端和生成工作流放进同�
 - **模型微调管理**：数据集上传校验、QLoRA / LoRA / 全量微调任务、训练日志、取消与产物下载；真实训练通过外部命令或演示运行器。
 - **文本翻译**：支持 LibreTranslate / Argos、Index-Translate、腾讯混元 Hy-MT2 与 OpenAI 兼容翻译网关，保留本地历史。
 - **图片文字识别**：支持 GLM-OCR、OpenAI 兼容视觉与 Tesseract，识别结果和原图保存在本地。
+- **统一协议与 SDK**：AIBOX Unified Protocol 1.0，提供 Python / TypeScript SDK、OpenAPI、能力发现、任务轮询与 SSE 流式封装。
 - **社区适配**：声明式 `openai-http` / `command` 适配器，覆盖 FunASR、Moonshine、Piper、Kokoro、CosyVoice、F5-TTS、GPT-SoVITS、Fish Speech 等主流模型；内置 16 个配方模板，导入后默认停用。
 - **真实推理**：faster-whisper + CTranslate2（CPU / CUDA）；IndexTTS 通过独立 Python worker 加载，避免依赖冲突。
 - **转写工作台**：拖放音频、自动语言检测、VAD、beam size、词级时间戳、实时进度、取消任务。
@@ -413,6 +414,18 @@ Index-Translate 与混元默认走 OpenAI 兼容接口，也可以通过 NewAPI 
 - 图片预览、识别历史、复制和删除。
 
 识别结果和原图保存在本地。详见 [图片文字识别](docs/ocr.md)。
+
+### 统一协议与 SDK
+
+AIBOX Unified Protocol 1.0 在现有 `/api` 与 `/v1` 之上定义统一契约：
+
+- `GET /api/protocol` 返回版本、能力、端点、任务状态与流式格式；
+- 统一请求头、Bearer 认证、`X-Request-ID` 与幂等键；
+- 统一任务状态与终态；
+- SDK 归一化 native `detail` 与 OpenAI `error`；
+- 提供 Python、TypeScript SDK 与 OpenAPI。
+
+详见 [协议](docs/protocol.md) 和 [SDK](sdk/README.md)。
 
 ## 社区适配
 
