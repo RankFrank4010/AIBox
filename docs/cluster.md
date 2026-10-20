@@ -87,7 +87,8 @@ AIBOX Compute Fabric 将单机 AIBox 扩展为“协调器 + Worker 节点”的
 
 - Worker 无状态，模型缓存可重建；
 - 使用 `--max-concurrency` 限制并发，避免 OOM；
-- 运维排空：`POST /api/cluster/nodes/{id}/drain`。
+- 运维排空：`POST /api/cluster/nodes/{id}/drain
+PATCH /api/cluster/nodes/{id}/config`。
 
 ## 高性能
 
@@ -107,6 +108,7 @@ GET  /api/cluster/nodes
 POST /api/cluster/nodes
 POST /api/cluster/nodes/{id}/heartbeat
 POST /api/cluster/nodes/{id}/drain
+PATCH /api/cluster/nodes/{id}/config
 POST /api/cluster/tasks
 GET  /api/cluster/tasks
 GET  /api/cluster/tasks/{id}
@@ -153,6 +155,21 @@ curl -X POST http://aibox:8765/api/cluster/tasks \
   }
 }
 ```
+
+## Worker 独立工作配置
+
+每个节点注册时携带 `work_config`，协调器持久化，并支持管理端覆盖：
+
+```http
+PATCH /api/cluster/nodes/worker-1/config
+{"work_config": {"enabled": true, "role": "ocr", "models": ["glm-ocr"]}}
+```
+
+`work_config.enabled=false` 时该节点不再被调度，但心跳和任务历史保留。当前 UI
+支持暂停/恢复调度；更细的模型、设备、端口、缓存目录配置可继续写入该对象。
+
+当前 `AIBOX_CLUSTER_MODE=master_slave` 是集中式协调器；`decentralized` 为后续
+P2P 模式预留，尚未实现完整无中心选主。
 
 ## 配置
 

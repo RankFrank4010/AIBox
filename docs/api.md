@@ -376,6 +376,22 @@ GET  /api/cluster/tasks/{id}
 
 详见 [多机集群](cluster.md)。
 
+## 账户与权限
+
+```http
+GET    /api/auth/status
+POST   /api/auth/bootstrap
+POST   /api/auth/login
+POST   /api/auth/logout
+GET    /api/auth/me
+GET    /api/auth/users
+POST   /api/auth/users
+PATCH  /api/auth/users/{id}
+DELETE /api/auth/users/{id}
+```
+
+详见 [账户与权限](auth.md)。
+
 ## 健康检查
 
 ```http

@@ -6,7 +6,7 @@
 
 ```text
 python -m ruff check services/api        → All checks passed
-python -m pytest services/api/tests -q   → 57 passed
+python -m pytest services/api/tests -q   → 60 passed
 ```
 
 Windows 上测试进程偶发 `0xC0000005`（Python / 原生库退出阶段，堆栈落在 GC 或 pytest 源码读取），重跑即可通过；服务进程本身持续运行无异常。
@@ -191,7 +191,7 @@ Whisper Small · NVIDIA CUDA · float16
 ```text
 pnpm --filter @aibox/web typecheck   → 通过
 pnpm --filter @aibox/web test        → 4 passed
-pnpm --filter @aibox/web build       → 通过（约 832 KB JS / 226 KB gzip）
+pnpm --filter @aibox/web build       → 通过（约 840 KB JS / 228 KB gzip）
 pnpm --filter @aibox/web build:desktop → 通过
 ```
 
@@ -243,29 +243,21 @@ pnpm --filter @aibox/desktop check
 - TypeScript SDK `tsc --noEmit` 通过；
 - OpenAPI 3.1.0 JSON 可解析，14 个核心路径。
 
+## 账户与权限实测
+
+- 内置账户首次启动创建管理员成功；
+- 登录会话、`/api/auth/me`、账户列表与创建成功；
+- viewer 可以读设置，但写入设置返回 403；
+- 未登录访问受保护 API 返回 401；
+- 外置头模式：无身份头 401，带 `X-Forwarded-User` 后成功；
+- UI 登录页、创建管理员、登录后设置页账户管理均通过浏览器验证。
+
 ## 多机集群实测
 
-- 协调器 `AIBOX_CLUSTER_ENABLED=1`，2 个 Worker 注册成功；
-- 两个并发翻译任务（各延迟 2 秒）分别调度到 `worker-1` 与 `worker-2`；
 - 四号服务器仅运行 `aibox_coordinator`（`ai_inference=false`），AI 容器已移除；
 - 本地 Windows Worker 通过 SSH 隧道注册到服务器 coordinator；
 - 服务器通过隧道向本地 Worker 下发任务并取回结果，验证跨物理机控制面/数据面分离；
+- 同机双 Worker 并发翻译任务分别落到两个节点；
 - 跨机张量并行仍需外置 vLLM/SGLang/TensorRT-LLM 建立 Ray/NCCL 集群；AIBox 当前负责拓扑配置和路由。
+- Worker `work_config.enabled=false` 时不再参与调度，PATCH 配置可恢复。
 
-## 部署
-
-```text
-docker compose config --quiet            → 0
-docker compose -f docker-compose.gpu.yml config --quiet → 0
-```
-
-本机 Docker daemon 未启动，因此未实际构建镜像 / 启动容器。Dockerfile 与 Compose 语法已通过 `docker compose config` 验证。
-
-## 未验证项
-
-- macOS 桌面壳与签名 / 公证；
-- Linux 实机 CUDA / 容器 GPU 透传；
-- NPU Whisper 加速（规划中）；
-- Android / iOS（仅规划）；
-- 大模型下载中断后的断点续传（当前取消会清理临时目录，不支持跨进程续传）；
-- 移动端 Safari / Android WebView 的实机兼容性。

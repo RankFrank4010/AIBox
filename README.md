@@ -30,6 +30,7 @@ AIBox 把模型下载、硬件探测、推理后端和生成工作流放进同�
 - **图片文字识别**：支持 GLM-OCR、OpenAI 兼容视觉与 Tesseract，识别结果和原图保存在本地。
 - **统一协议与 SDK**：AIBOX Unified Protocol 1.0，提供 Python / TypeScript SDK、OpenAPI、能力发现、任务轮询与 SSE 流式封装。
 - **多机集群**：Worker 注册/心跳/能力标签/最低负载调度/失败重试；支持控制面与 AI 数据面分离的跨物理机部署。
+- **账户与权限**：内置轻量登录、admin/operator/viewer 三级角色，支持可信头外置登录。
 - **社区适配**：声明式 `openai-http` / `command` 适配器，覆盖 FunASR、Moonshine、Piper、Kokoro、CosyVoice、F5-TTS、GPT-SoVITS、Fish Speech 等主流模型；内置 16 个配方模板，导入后默认停用。
 - **真实推理**：faster-whisper + CTranslate2（CPU / CUDA）；IndexTTS 通过独立 Python worker 加载，避免依赖冲突。
 - **转写工作台**：拖放音频、自动语言检测、VAD、beam size、词级时间戳、实时进度、取消任务。
@@ -103,6 +104,10 @@ AIBox 把模型下载、硬件探测、推理后端和生成工作流放进同�
 | 计算集群 |
 | --- |
 | ![计算集群](screenshots/cluster.png) |
+
+| 内置登录 |
+| --- |
+| ![内置登录](screenshots/auth-login.png) |
 
 | 移动端 WebUI |
 | --- |
@@ -442,6 +447,18 @@ python -m aibox_api.worker \
 ```
 
 详见 [多机集群](docs/cluster.md)。
+
+### 账户与权限
+
+启用 `AIBOX_AUTH_ENABLED=1` 后：
+
+- 首次打开 WebUI 创建管理员；
+- 内置用户名/密码登录与会话；
+- `admin` / `operator` / `viewer` 三级权限；
+- 设置页可管理账户、角色和停用状态；
+- 可通过 `AIBOX_AUTH_MODE=external` 信任反向代理/身份网关的用户头。
+
+详见 [账户与权限](docs/auth.md)。
 
 ### 统一协议与 SDK
 
