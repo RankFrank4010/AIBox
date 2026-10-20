@@ -418,7 +418,13 @@ export function SettingsPage() {
                 >
                   <option value="auto">自动选择</option>
                   <option value="llama-cpp">本地 llama.cpp</option>
-                  <option value="openai">OpenAI 兼容服务</option>
+                  <option value="vllm">vLLM</option>
+                  <option value="sglang">SGLang</option>
+                  <option value="mlx">MLX / MLX-LM</option>
+                  <option value="tensorrt-llm">TensorRT-LLM</option>
+                  <option value="lmstudio">LM Studio</option>
+                  <option value="ollama">Ollama</option>
+                  <option value="openai">其他 OpenAI 兼容服务</option>
                   <option value="demo">演示引擎</option>
                 </Select>
               </label>

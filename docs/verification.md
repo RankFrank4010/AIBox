@@ -6,7 +6,7 @@
 
 ```text
 python -m ruff check services/api        → All checks passed
-python -m pytest services/api/tests -q   → 55 passed
+python -m pytest services/api/tests -q   → 57 passed
 ```
 
 Windows 上测试进程偶发 `0xC0000005`（Python / 原生库退出阶段，堆栈落在 GC 或 pytest 源码读取），重跑即可通过；服务进程本身持续运行无异常。
@@ -191,7 +191,7 @@ Whisper Small · NVIDIA CUDA · float16
 ```text
 pnpm --filter @aibox/web typecheck   → 通过
 pnpm --filter @aibox/web test        → 4 passed
-pnpm --filter @aibox/web build       → 通过（约 831 KB JS / 225 KB gzip）
+pnpm --filter @aibox/web build       → 通过（约 832 KB JS / 226 KB gzip）
 pnpm --filter @aibox/web build:desktop → 通过
 ```
 
@@ -247,9 +247,10 @@ pnpm --filter @aibox/desktop check
 
 - 协调器 `AIBOX_CLUSTER_ENABLED=1`，2 个 Worker 注册成功；
 - 两个并发翻译任务（各延迟 2 秒）分别调度到 `worker-1` 与 `worker-2`；
-- OCR 任务通过 Worker 返回识别结果；
-- 节点心跳、能力过滤、并发槽位、任务持久化与失败重试均有测试覆盖；
-- 同机多进程验证，真实跨物理机只需替换 Worker `--url` 与共享存储。
+- 四号服务器仅运行 `aibox_coordinator`（`ai_inference=false`），AI 容器已移除；
+- 本地 Windows Worker 通过 SSH 隧道注册到服务器 coordinator；
+- 服务器通过隧道向本地 Worker 下发任务并取回结果，验证跨物理机控制面/数据面分离；
+- 跨机张量并行仍需外置 vLLM/SGLang/TensorRT-LLM 建立 Ray/NCCL 集群；AIBox 当前负责拓扑配置和路由。
 
 ## 部署
 

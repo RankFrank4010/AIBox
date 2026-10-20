@@ -165,19 +165,31 @@ curl -X POST http://aibox:8765/api/cluster/tasks \
 
 ## 已验证实践
 
-本机启动了：
+### 跨物理机控制面/数据面
 
-- 1 个协调器（`AIBOX_CLUSTER_ENABLED=1`）；
-- 2 个 Worker（`worker-1`、`worker-2`，各 1 并发，翻译 + OCR）；
-- 2 个并发翻译任务（各延迟 2 秒）分别落在两个 Worker；
-- OCR 任务可落到 Worker 并返回结果。
+已实际验证：
 
-四号服务器的 `1panel-network` 上也运行了协调器 `aibox` 与两个 Worker 容器
-`aibox-worker-1` / `aibox-worker-2`，并发任务分别落到两个节点。
+- 四号服务器只运行 **coordinator**（`ai_inference=false`），不加载任何 AI 模型；
+- 本地 Windows 运行 Worker，通过 SSH 反向隧道把 Worker 端口映射到服务器；
+- 服务器 coordinator 通过隧道向本地 Worker 下发翻译任务；
+- 任务结果返回服务器，Worker 侧完成推理；
+- 服务器上原有 `aibox` / `aibox-worker-*` AI 容器已移除。
 
-这验证了注册、心跳、能力过滤、最低负载选择、并发槽位、失败重试与任务持久化。
-真正的跨物理机部署只需把 Worker 的 `--url` 换成各机器可达地址，并共享协调器
-数据库与对象存储。
+逻辑拓扑：
+
+```text
+四号服务器（控制面）                本地 Windows（数据面）
+aibox_coordinator  ── SSH tunnel ──  aibox_worker
+   :8765                                :19101
+```
+
+该实践满足“服务器不处理 AI 服务”：服务器只做注册、调度和任务状态；AI 推理
+只在 Worker 所在机器执行。跨机器张量并行仍需外置 vLLM/SGLang/TensorRT-LLM
+先建立 Ray/NCCL 集群，AIBox 当前负责拓扑配置与请求路由，不替代其分布式启动器。
+
+### 同机多进程
+
+本机也验证了 1 个 coordinator + 2 个 Worker、并发翻译分发与 OCR 调度。
 
 ## 限制
 

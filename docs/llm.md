@@ -147,3 +147,36 @@ MiniMax / 云端 LLM 不占本地预算；外部 OpenAI 服务由服务端管理
 - 当前对话仅保留在当前页面会话，不落库；刷新后清空。
 - 未实现工具调用、函数调用、RAG、图片输入或语音对话。
 - 温度/Top-p 等只暴露常用项；复杂采样参数由 llama-server / 上游默认值决定。
+
+
+## 外置推理引擎
+
+除 `llama.cpp` 外，设置中的 `llm_provider` 支持：
+
+| Provider | 默认 Base URL | 说明 |
+| --- | --- | --- |
+| `vllm` | `http://127.0.0.1:8000/v1` | vLLM OpenAI Server，支持单机多卡 TP/PP |
+| `sglang` | `http://127.0.0.1:30000/v1` | SGLang Runtime |
+| `mlx` | `http://127.0.0.1:8080/v1` | Apple Silicon MLX / `mlx_lm.server` |
+| `tensorrt-llm` | `http://127.0.0.1:8000/v1` | TensorRT-LLM OpenAI Server |
+| `lmstudio` | `http://127.0.0.1:1234/v1` | LM Studio 本地服务 |
+| `ollama` | `http://127.0.0.1:11434/v1` | Ollama OpenAI 兼容端点 |
+
+环境变量：
+
+```text
+AIBOX_VLLM_BASE_URL / AIBOX_VLLM_MODEL
+AIBOX_SGLANG_BASE_URL / AIBOX_SGLANG_MODEL
+AIBOX_MLX_BASE_URL / AIBOX_MLX_MODEL
+AIBOX_TENSORRT_LLM_BASE_URL / AIBOX_TENSORRT_LLM_MODEL
+AIBOX_LMSTUDIO_BASE_URL / AIBOX_LMSTUDIO_MODEL
+AIBOX_OLLAMA_BASE_URL / AIBOX_OLLAMA_MODEL
+AIBOX_LLM_TP_SIZE
+AIBOX_LLM_PP_SIZE
+AIBOX_LLM_DIST_BACKEND
+```
+
+跨物理机张量并行需要外置引擎先建立 Ray/NCCL 集群，再在启动参数中设置
+`--tensor-parallel-size` / `--pipeline-parallel-size`；AIBox 负责选择模型、路由请求
+和记录拓扑，不替代 vLLM/SGLang/TensorRT-LLM 的分布式启动器。
+

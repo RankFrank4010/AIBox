@@ -19,7 +19,7 @@ AIBox 把模型下载、硬件探测、推理后端和生成工作流放进同�
 - **图像工作流**：默认只暴露提示词、比例、模型与数量；步数、种子、ComfyUI checkpoint / 工作流放在“高级设置”，默认不展示节点图。
 - **人声 / 伴奏分离**：Demucs v4 / htdemucs_ft / MDX Extra 与 UVR MDX-Net，支持去人声、去背景、四轨分离；分轨可试听与下载。
 - **视频生成**：MiniMax H3 / Hailuo 02 云端 API，以及 ComfyUI 的 Wan2.1 / HunyuanVideo / LTX-Video；默认只展示提示词、时长、分辨率与画幅，节点图放在高级设置。
-- **语言模型**：本地 GGUF（Qwen / Llama / Mistral / Gemma / DeepSeek / Phi）通过 llama-server 运行，也可连接 Ollama / LM Studio / vLLM / 任意 OpenAI 兼容服务；流式对话与 OpenAI `/v1/chat/completions`。
+- **语言模型**：本地 GGUF（Qwen / Llama / Mistral / Gemma / DeepSeek / Phi）通过 llama-server 运行，也可连接 Ollama / LM Studio / vLLM / SGLang / MLX / TensorRT-LLM 与任意 OpenAI 兼容服务；流式对话与 OpenAI `/v1/chat/completions`。
 - **模型管理**：Hugging Face 下载、分文件进度、速度 / ETA、取消、完整性校验、安装 manifest、删除、设为默认。
 - **多种加载**：已安装模型可在转写 / 合成页即时切换；ASR 与 TTS 可同时驻留，弹性调度按显存 / 内存与需求换入换出。
 - **弹性模式**：自动、均衡、ASR 优先、TTS 优先、时间片、自定义；可配置空闲卸载、切换窗口、常驻上限、显存 / 内存预留与固定驻留类型。
@@ -29,7 +29,7 @@ AIBox 把模型下载、硬件探测、推理后端和生成工作流放进同�
 - **文本翻译**：支持 LibreTranslate / Argos、Index-Translate、腾讯混元 Hy-MT2 与 OpenAI 兼容翻译网关，保留本地历史。
 - **图片文字识别**：支持 GLM-OCR、OpenAI 兼容视觉与 Tesseract，识别结果和原图保存在本地。
 - **统一协议与 SDK**：AIBOX Unified Protocol 1.0，提供 Python / TypeScript SDK、OpenAPI、能力发现、任务轮询与 SSE 流式封装。
-- **多机集群**：Worker 注册/心跳/能力标签/最低负载调度/失败重试，以及集群监控页。
+- **多机集群**：Worker 注册/心跳/能力标签/最低负载调度/失败重试；支持控制面与 AI 数据面分离的跨物理机部署。
 - **社区适配**：声明式 `openai-http` / `command` 适配器，覆盖 FunASR、Moonshine、Piper、Kokoro、CosyVoice、F5-TTS、GPT-SoVITS、Fish Speech 等主流模型；内置 16 个配方模板，导入后默认停用。
 - **真实推理**：faster-whisper + CTranslate2（CPU / CUDA）；IndexTTS 通过独立 Python worker 加载，避免依赖冲突。
 - **转写工作台**：拖放音频、自动语言检测、VAD、beam size、词级时间戳、实时进度、取消任务。
@@ -353,7 +353,7 @@ MiniMax 需要 `MINIMAX_API_KEY`；ComfyUI 需要 `AIBOX_COMFYUI_URL` 和高级�
 | Gemma 3 12B | 12B | 约 6.8 GB | 长文档 / 多语言 |
 | Phi-3.5 mini | 3.8B | 约 2.2 GB | 低显存 / 快速回答 |
 
-本地 GGUF 通过 `llama-server` 运行，设置 `AIBOX_LLAMA_SERVER` 或安装到 PATH；也可以连接 Ollama / LM Studio / vLLM / 任意 OpenAI 兼容服务（`AIBOX_LLM_BASE_URL`）。详见 [大语言模型](docs/llm.md)。
+本地 GGUF 通过 `llama-server` 运行，设置 `AIBOX_LLAMA_SERVER` 或安装到 PATH；也可以连接 Ollama / LM Studio / vLLM / SGLang / MLX / TensorRT-LLM / 任意 OpenAI 兼容服务（`AIBOX_LLM_BASE_URL` 或对应 Provider 变量）。详见 [大语言模型](docs/llm.md)。
 
 ### NewAPI 网关
 
