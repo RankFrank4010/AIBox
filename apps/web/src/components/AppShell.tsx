@@ -3,6 +3,7 @@ import {
   ArrowDownloadRegular,
   BeakerRegular,
   ChatRegular,
+  CloudRegular,
   DocumentTextRegular,
   GlobeRegular,
   HomeRegular,
@@ -37,6 +38,7 @@ const NAV_ITEMS = [
   { path: '/videos', label: '视频生成', icon: <VideoRegular /> },
   { path: '/separations', label: '音频分离', icon: <MusicNote2Regular /> },
   { path: '/system', label: '硬件引擎', icon: <HardwareIcon kind="cpu" size={22} /> },
+  { path: '/cluster', label: '集群', icon: <CloudRegular /> },
   { path: '/services', label: '服务接入', icon: <GlobeRegular /> },
   { path: '/settings', label: '设置', icon: <SettingsRegular /> },
 ];
@@ -55,6 +57,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/videos': '视频生成',
   '/separations': '音频分离',
   '/system': '硬件与引擎',
+  '/cluster': '计算集群',
   '/services': '服务接入',
   '/roadmap': '跨端路线',
   '/settings': '设置',

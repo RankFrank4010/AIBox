@@ -1,0 +1,247 @@
+/* --------------------------------------------------------------------- cluster */
+.cluster-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cluster-stat {
+  position: relative;
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 2px 8px;
+  align-items: center;
+}
+
+.cluster-stat svg {
+  width: 22px;
+  height: 22px;
+  color: var(--cyan);
+  grid-row: span 2;
+}
+
+.cluster-stat span {
+  font-size: 8px;
+  color: var(--muted-2);
+}
+
+.cluster-stat strong {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.cluster-stat small {
+  grid-column: 2;
+  font-size: 7px;
+  color: var(--muted-2);
+}
+
+.cluster-nodes-panel,
+.cluster-tasks-panel {
+  padding: 16px;
+}
+
+.cluster-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cluster-panel-head h2 {
+  margin: 4px 0 0;
+  font-size: 15px;
+}
+
+.cluster-mono {
+  font-family: var(--font-mono);
+  font-size: 7.5px;
+  color: var(--muted-2);
+}
+
+.cluster-node-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cluster-node {
+  padding: 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(148, 163, 190, 0.03);
+}
+
+.cluster-node-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cluster-node-head > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cluster-node-head strong {
+  font-size: 10px;
+}
+
+.cluster-node-head span {
+  font-family: var(--font-mono);
+  font-size: 7.5px;
+  color: var(--muted-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cluster-node-meta {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  color: var(--muted-2);
+}
+
+.cluster-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 7px;
+}
+
+.cluster-chips span {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--muted);
+  font-size: 7px;
+}
+
+.cluster-table {
+  display: flex;
+  flex-direction: column;
+  max-height: 340px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.cluster-table-head,
+.cluster-table-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.7fr 0.8fr 0.7fr 0.4fr 1.4fr;
+  gap: 8px;
+  padding: 7px 9px;
+  align-items: center;
+}
+
+.cluster-table-head {
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  font-size: 7px;
+  color: var(--muted-2);
+}
+
+.cluster-table-row {
+  border-bottom: 1px solid var(--border);
+  font-size: 8px;
+  color: var(--muted);
+}
+
+.cluster-table-row:last-child {
+  border-bottom: 0;
+}
+
+.cluster-table-row:hover {
+  background: rgba(148, 163, 190, 0.04);
+}
+
+.cluster-table-row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cluster-state {
+  font-family: var(--font-mono);
+  font-size: 7.5px;
+}
+
+.cluster-state.is-completed {
+  color: var(--mint);
+}
+
+.cluster-state.is-running,
+.cluster-state.is-assigned {
+  color: var(--amber);
+}
+
+.cluster-state.is-failed {
+  color: var(--danger);
+}
+
+.cluster-empty {
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  text-align: center;
+  color: var(--muted-2);
+  font-size: 9px;
+}
+
+.cluster-empty strong {
+  color: var(--text);
+  font-size: 11px;
+}
+
+.cluster-error {
+  padding: 9px 10px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 107, 107, 0.28);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 9px;
+}
+
+.cluster-note {
+  font-size: 8px;
+  line-height: 1.6;
+  color: var(--muted-2);
+  padding: 0 2px;
+}
+
+@media (max-width: 900px) {
+  .cluster-stats,
+  .cluster-node-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .cluster-stats,
+  .cluster-node-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cluster-table {
+    min-width: 620px;
+  }
+
+  .cluster-tasks-panel {
+    overflow-x: auto;
+  }
+}

@@ -17,6 +17,8 @@ import type {
   TranslationStatus,
   OcrRecord,
   OcrStatus,
+  ClusterStatus,
+  ClusterTask,
   SeparationJob,
   SeparationStatus,
   SeparationsPayload,
@@ -307,6 +309,9 @@ export const api = {
     }),
   deleteOcr: (id: string) =>
     request(`/api/ocr/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  clusterStatus: () => request<ClusterStatus>('/api/cluster/status'),
+  clusterTasks: (limit = 50) =>
+    request<{ tasks: ClusterTask[] }>(`/api/cluster/tasks?limit=${limit}`),
   url: (path: string) => `${API_BASE}${path}`,
 };
 

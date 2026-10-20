@@ -18,6 +18,7 @@ import { SeparationsPage } from './pages/SeparationsPage';
 import { ChatPage } from './pages/ChatPage';
 import { TranslationPage } from './pages/TranslationPage';
 import { OcrPage } from './pages/OcrPage';
+import { ClusterPage } from './pages/ClusterPage';
 import { TrainingPage } from './pages/TrainingPage';
 import { VideosPage } from './pages/VideosPage';
 
@@ -45,6 +46,7 @@ export default function App() {
               <Route path="separations" element={<SeparationsPage />} />
               <Route path="videos" element={<VideosPage />} />
               <Route path="system" element={<SystemPage />} />
+              <Route path="cluster" element={<ClusterPage />} />
               <Route path="services" element={<ServicesPage />} />
               <Route path="roadmap" element={<RoadmapPage />} />
               <Route path="settings" element={<SettingsPage />} />

@@ -79,6 +79,7 @@ const routes = [
   ['/videos', '.videos-layout'],
   ['/separations', '.separations-layout'],
   ['/system', '.accelerator-grid'],
+  ['/cluster', '.cluster-page'],
   ['/services', '.service-grid'],
   ['/roadmap', '.roadmap-timeline'],
   ['/settings', '.settings-layout'],
@@ -164,6 +165,7 @@ for (const [route, selector] of [
   ['/images', '.images-layout'],
   ['/videos', '.videos-layout'],
   ['/separations', '.separations-layout'],
+  ['/cluster', '.cluster-page'],
   ['/services', '.service-grid'],
   ['/settings', '.settings-layout'],
 ]) {

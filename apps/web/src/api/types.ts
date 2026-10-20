@@ -967,3 +967,39 @@ export interface OcrRecord {
   filename: string;
   latency_ms: number;
 }
+
+export interface ClusterNode {
+  id: string;
+  url: string;
+  capabilities: string[];
+  labels: Record<string, string>;
+  max_concurrency: number;
+  state: string;
+  version: string;
+  active_tasks: number;
+  registered_at: string;
+  last_heartbeat: string;
+}
+
+export interface ClusterTask {
+  id: string;
+  kind: string;
+  status: string;
+  node_id: string | null;
+  attempts: number;
+  error: string | null;
+  result: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClusterStatus {
+  enabled: boolean;
+  token_required: boolean;
+  node_ttl_seconds: number;
+  max_retries: number;
+  nodes_online: number;
+  nodes_total: number;
+  nodes: ClusterNode[];
+  task_counts: Record<string, number>;
+}
