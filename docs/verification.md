@@ -6,7 +6,7 @@
 
 ```text
 python -m ruff check services/api        → All checks passed
-python -m pytest services/api/tests -q   → 52 passed
+python -m pytest services/api/tests -q   → 55 passed
 ```
 
 Windows 上测试进程偶发 `0xC0000005`（Python / 原生库退出阶段，堆栈落在 GC 或 pytest 源码读取），重跑即可通过；服务进程本身持续运行无异常。
@@ -191,13 +191,13 @@ Whisper Small · NVIDIA CUDA · float16
 ```text
 pnpm --filter @aibox/web typecheck   → 通过
 pnpm --filter @aibox/web test        → 4 passed
-pnpm --filter @aibox/web build       → 通过（约 826 KB JS / 224 KB gzip）
+pnpm --filter @aibox/web build       → 通过（约 831 KB JS / 225 KB gzip）
 pnpm --filter @aibox/web build:desktop → 通过
 ```
 
 Playwright 页面检查：
 
-- 17 个桌面页面状态 + 14 个移动端页面：总览、模型库、社区适配、转写、转写结果（查询参数）、语音合成、语言模型、文本翻译、图片文字识别、模型微调、图像生成、视频生成、人声分离、硬件、服务接入、路线图、设置；
+- 18 个桌面页面状态 + 15 个移动端页面：总览、模型库、社区适配、转写、转写结果（查询参数）、语音合成、语言模型、文本翻译、图片文字识别、模型微调、图像生成、视频生成、人声分离、硬件、计算集群、服务接入、路线图、设置；
 - 1440px 与 390px 两套视口；
 - `document.body.scrollWidth == innerWidth`，无水平溢出；
 - 0 个 console error / pageerror；
@@ -237,11 +237,19 @@ pnpm --filter @aibox/desktop check
 
 ## 统一协议与 SDK 实测
 
-- `GET /api/protocol` 返回 `aibox-unified` 1.0、能力、14 个端点与任务状态；
+- `GET /api/protocol` 返回 `aibox-unified` 1.0、能力、16 个端点与任务状态；
 - 所有 HTTP 响应带 `X-AIBox-Protocol: 1.0`；
 - Python SDK 3 个测试通过：统一头、错误归一化、任务轮询；
 - TypeScript SDK `tsc --noEmit` 通过；
-- OpenAPI 3.1.0 JSON 可解析，12 个核心路径。
+- OpenAPI 3.1.0 JSON 可解析，14 个核心路径。
+
+## 多机集群实测
+
+- 协调器 `AIBOX_CLUSTER_ENABLED=1`，2 个 Worker 注册成功；
+- 两个并发翻译任务（各延迟 2 秒）分别调度到 `worker-1` 与 `worker-2`；
+- OCR 任务通过 Worker 返回识别结果；
+- 节点心跳、能力过滤、并发槽位、任务持久化与失败重试均有测试覆盖；
+- 同机多进程验证，真实跨物理机只需替换 Worker `--url` 与共享存储。
 
 ## 部署
 

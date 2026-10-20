@@ -361,6 +361,21 @@ DELETE /api/ocr/{id}
 
 `POST /api/ocr` multipart 字段：`file`、`provider`、`model`、`language`。支持 GLM-OCR、OpenAI 兼容视觉、Tesseract。详见 [图片文字识别](ocr.md)。
 
+## 计算集群
+
+```http
+GET  /api/cluster/status
+GET  /api/cluster/nodes
+POST /api/cluster/nodes
+POST /api/cluster/nodes/{id}/heartbeat
+POST /api/cluster/nodes/{id}/drain
+POST /api/cluster/tasks
+GET  /api/cluster/tasks
+GET  /api/cluster/tasks/{id}
+```
+
+详见 [多机集群](cluster.md)。
+
 ## 健康检查
 
 ```http

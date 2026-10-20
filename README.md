@@ -29,6 +29,7 @@ AIBox 把模型下载、硬件探测、推理后端和生成工作流放进同�
 - **文本翻译**：支持 LibreTranslate / Argos、Index-Translate、腾讯混元 Hy-MT2 与 OpenAI 兼容翻译网关，保留本地历史。
 - **图片文字识别**：支持 GLM-OCR、OpenAI 兼容视觉与 Tesseract，识别结果和原图保存在本地。
 - **统一协议与 SDK**：AIBOX Unified Protocol 1.0，提供 Python / TypeScript SDK、OpenAPI、能力发现、任务轮询与 SSE 流式封装。
+- **多机集群**：Worker 注册/心跳/能力标签/最低负载调度/失败重试，以及集群监控页。
 - **社区适配**：声明式 `openai-http` / `command` 适配器，覆盖 FunASR、Moonshine、Piper、Kokoro、CosyVoice、F5-TTS、GPT-SoVITS、Fish Speech 等主流模型；内置 16 个配方模板，导入后默认停用。
 - **真实推理**：faster-whisper + CTranslate2（CPU / CUDA）；IndexTTS 通过独立 Python worker 加载，避免依赖冲突。
 - **转写工作台**：拖放音频、自动语言检测、VAD、beam size、词级时间戳、实时进度、取消任务。
@@ -98,6 +99,10 @@ AIBox 把模型下载、硬件探测、推理后端和生成工作流放进同�
 | 硬件与引擎 | 服务接入 |
 | --- | --- |
 | ![硬件与引擎](screenshots/system.png) | ![服务接入](screenshots/services.png) |
+
+| 计算集群 |
+| --- |
+| ![计算集群](screenshots/cluster.png) |
 
 | 移动端 WebUI |
 | --- |
@@ -415,6 +420,29 @@ Index-Translate 与混元默认走 OpenAI 兼容接口，也可以通过 NewAPI 
 
 识别结果和原图保存在本地。详见 [图片文字识别](docs/ocr.md)。
 
+### 多机计算集群
+
+AIBOX Compute Fabric 提供：
+
+- Worker 注册、能力标签、5 秒心跳与租约；
+- 最低负载 + 能力过滤调度；
+- 并发槽位、失败重试、draining 排空；
+- 集群状态页与任务分布；
+- 翻译 / OCR 的跨 Worker 调度原型。
+
+启动 Worker：
+
+```bash
+python -m aibox_api.worker \
+  --id worker-1 \
+  --url http://worker-1:9101 \
+  --coordinator http://aibox:8765 \
+  --capabilities translation,ocr \
+  --max-concurrency 2
+```
+
+详见 [多机集群](docs/cluster.md)。
+
 ### 统一协议与 SDK
 
 AIBOX Unified Protocol 1.0 在现有 `/api` 与 `/v1` 之上定义统一契约：
@@ -529,6 +557,10 @@ ASR 与 TTS 可以同时驻留；当显存 / 内存预算不足时，运行时�
 | `AIBOX_GLM_BASE_URL` | 智谱 v4 | GLM-OCR Base URL |
 | `AIBOX_GLM_OCR_MODEL` | `glm-ocr` | GLM-OCR 模型名 |
 | `AIBOX_TESSERACT_COMMAND` | `tesseract` | Tesseract 命令 |
+| `AIBOX_CLUSTER_ENABLED` | `0` | 启用集群调度 |
+| `AIBOX_CLUSTER_TOKEN` | 空 | Worker 共享 Token |
+| `AIBOX_CLUSTER_NODE_TTL` | `20` | 节点心跳租约秒数 |
+| `AIBOX_CLUSTER_MAX_RETRIES` | `2` | 任务失败重试次数 |
 | `AIBOX_ADAPTERS_DIR` | `<data>/adapters` | 社区适配器目录 |
 | `AIBOX_ALLOW_ADAPTER_COMMANDS` | `0` | 允许 command 适配器执行本机进程 |
 | `AIBOX_ALLOW_REMOTE_ADAPTERS` | `0` | 允许远程 HTTP 适配器；默认仅 localhost / 局域网 |

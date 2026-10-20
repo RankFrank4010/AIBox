@@ -163,6 +163,15 @@ POST /api/videos
 POST /api/training/jobs
 ```
 
+### 集群
+
+```http
+GET  /api/cluster/status
+POST /api/cluster/tasks
+```
+
+集群任务是翻译/OCR 的跨 Worker 调度入口；`GET /api/cluster/nodes` 返回节点租约、能力和负载。详见 [多机集群](cluster.md)。
+
 完整列表由 `GET /api/protocol` 动态返回，避免文档与实现漂移。
 
 ## SDK
