@@ -973,6 +973,7 @@ export interface ClusterNode {
   url: string;
   capabilities: string[];
   labels: Record<string, string>;
+  work_config: Record<string, unknown>;
   max_concurrency: number;
   state: string;
   version: string;
@@ -995,6 +996,7 @@ export interface ClusterTask {
 
 export interface ClusterStatus {
   enabled: boolean;
+  mode: string;
   token_required: boolean;
   node_ttl_seconds: number;
   max_retries: number;
@@ -1002,4 +1004,20 @@ export interface ClusterStatus {
   nodes_total: number;
   nodes: ClusterNode[];
   task_counts: Record<string, number>;
+}
+
+export interface AuthUser {
+  id: string;
+  username: string;
+  role: 'admin' | 'operator' | 'viewer';
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuthStatus {
+  enabled: boolean;
+  mode: 'builtin' | 'external';
+  needs_setup: boolean;
+  user: AuthUser | null;
 }

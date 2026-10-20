@@ -20,6 +20,7 @@ import {
   ImageRegular,
   InfoRegular,
   LocalLanguageRegular,
+  PersonRegular,
   SaveRegular,
   SettingsRegular,
   Speaker2Regular,
@@ -28,7 +29,7 @@ import { PageHeader } from '../components/PageHeader';
 import { StatusPill } from '../components/StatusPill';
 import { useAppData } from '../state/AppContext';
 import { useThemeMode } from '../state/ThemeContext';
-import type { AppSettings, VoiceProfile } from '../api/types';
+import type { AppSettings, AuthStatus, AuthUser, VoiceProfile } from '../api/types';
 import { api, errorMessage } from '../api/client';
 import { formatBytes } from '../utils/format';
 
@@ -38,6 +39,11 @@ export function SettingsPage() {
   const [draft, setDraft] = useState<AppSettings | null>(null);
   const [saving, setSaving] = useState(false);
   const [voices, setVoices] = useState<VoiceProfile[]>([]);
+  const [auth, setAuth] = useState<AuthStatus | null>(null);
+  const [users, setUsers] = useState<AuthUser[]>([]);
+  const [newUser, setNewUser] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newRole, setNewRole] = useState('viewer');
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -49,7 +55,21 @@ export function SettingsPage() {
 
   useEffect(() => {
     void api.ttsVoices().then((data) => setVoices(data.voices)).catch(() => undefined);
+    void api.authStatus().then(setAuth).catch(() => undefined);
   }, []);
+
+  const loadUsers = async () => {
+    try {
+      const data = await api.authUsers();
+      setUsers(data.users);
+    } catch {
+      setUsers([]);
+    }
+  };
+
+  useEffect(() => {
+    if (auth?.enabled && auth.user?.role === 'admin') void loadUsers();
+  }, [auth]);
 
   const installed = (models?.installed ?? []).filter((model) => model.kind === 'asr');
   const installedTts = (models?.installed ?? []).filter((model) => model.kind === 'tts');
@@ -863,6 +883,110 @@ export function SettingsPage() {
               GLM-OCR 与 OpenAI 视觉服务使用图片 base64 的 /chat/completions 请求；
               Tesseract 支持本机语言包。API Key 仅保存在本机设置中。
             </div>
+          </section>
+
+          <section className="panel settings-card">
+            <div className="settings-card-head">
+              <div className="settings-icon">
+                <PersonRegular />
+              </div>
+              <div>
+                <h2>账户与权限</h2>
+                <p>内置轻量账户系统，支持 admin / operator / viewer 三级权限。</p>
+              </div>
+            </div>
+            {!auth?.enabled ? (
+              <div className="inline-note">
+                账户系统当前未启用。设置 `AIBOX_AUTH_ENABLED=1` 后重启，首次打开 WebUI
+                会引导创建管理员；外置登录使用 `AIBOX_AUTH_MODE=external` 和身份头。
+              </div>
+            ) : auth.user?.role !== 'admin' ? (
+              <div className="inline-note">仅管理员可以管理账户。</div>
+            ) : (
+              <>
+                <div className="auth-users">
+                  {users.map((item) => (
+                    <div className="auth-user-row" key={item.id}>
+                      <div>
+                        <strong>{item.username}</strong>
+                        <span>{item.active ? '启用' : '停用'}</span>
+                      </div>
+                      <Select
+                        value={item.role}
+                        onChange={(_, data) => {
+                          void api
+                            .authUpdateUser(item.id, { role: data.value })
+                            .then(loadUsers)
+                            .catch((reason) => notify(errorMessage(reason), 'error'));
+                        }}
+                      >
+                        <option value="viewer">viewer</option>
+                        <option value="operator">operator</option>
+                        <option value="admin">admin</option>
+                      </Select>
+                      <Button
+                        appearance="subtle"
+                        size="small"
+                        onClick={() => {
+                          void api
+                            .authUpdateUser(item.id, { active: !item.active })
+                            .then(loadUsers)
+                            .catch((reason) => notify(errorMessage(reason), 'error'));
+                        }}
+                      >
+                        {item.active ? '停用' : '启用'}
+                      </Button>
+                      <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<DeleteRegular />}
+                        onClick={() => {
+                          void api
+                            .authDeleteUser(item.id)
+                            .then(loadUsers)
+                            .catch((reason) => notify(errorMessage(reason), 'error'));
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="auth-user-create">
+                  <Input
+                    value={newUser}
+                    onChange={(_, data) => setNewUser(data.value)}
+                    placeholder="用户名"
+                  />
+                  <Input
+                    type="password"
+                    value={newPassword}
+                    onChange={(_, data) => setNewPassword(data.value)}
+                    placeholder="密码（至少 8 位）"
+                  />
+                  <Select value={newRole} onChange={(_, data) => setNewRole(data.value)}>
+                    <option value="viewer">viewer</option>
+                    <option value="operator">operator</option>
+                    <option value="admin">admin</option>
+                  </Select>
+                  <Button
+                    appearance="primary"
+                    icon={<AddRegular />}
+                    disabled={!newUser || newPassword.length < 8}
+                    onClick={() => {
+                      void api
+                        .authCreateUser(newUser, newPassword, newRole)
+                        .then(() => {
+                          setNewUser('');
+                          setNewPassword('');
+                          return loadUsers();
+                        })
+                        .catch((reason) => notify(errorMessage(reason), 'error'));
+                    }}
+                  >
+                    添加
+                  </Button>
+                </div>
+              </>
+            )}
           </section>
 
           <section className="panel settings-card">

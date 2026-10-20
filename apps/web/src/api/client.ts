@@ -19,6 +19,9 @@ import type {
   OcrStatus,
   ClusterStatus,
   ClusterTask,
+  ClusterNode,
+  AuthStatus,
+  AuthUser,
   SeparationJob,
   SeparationStatus,
   SeparationsPayload,
@@ -35,6 +38,24 @@ import type {
 
 const configuredBase = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, '');
 export const API_BASE = configuredBase ?? '';
+export const AUTH_TOKEN_KEY = 'aibox.auth.token';
+
+export function authToken(): string | null {
+  try {
+    return window.localStorage.getItem(AUTH_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setAuthToken(token: string | null): void {
+  try {
+    if (token) window.localStorage.setItem(AUTH_TOKEN_KEY, token);
+    else window.localStorage.removeItem(AUTH_TOKEN_KEY);
+  } catch {
+    // Ignore storage failures (private mode / embedded webview).
+  }
+}
 
 export class ApiError extends Error {
   status: number;
@@ -54,6 +75,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       headers: {
         Accept: 'application/json',
         ...(init?.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+        ...(authToken() ? { Authorization: `Bearer ${authToken()}` } : {}),
         ...init?.headers,
       },
     });
@@ -89,6 +111,37 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   health: () => request<HealthPayload>('/api/health'),
+  authStatus: () => request<AuthStatus>('/api/auth/status'),
+  authBootstrap: (username: string, password: string) =>
+    request<{ token: string; user: AuthUser }>('/api/auth/bootstrap', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    }),
+  authLogin: (username: string, password: string) =>
+    request<{ token: string; user: AuthUser }>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    }),
+  authLogout: () => request<{ ok: boolean }>('/api/auth/logout', { method: 'POST' }),
+  authMe: () => request<{ user: AuthUser }>('/api/auth/me'),
+  authUsers: () => request<{ users: AuthUser[] }>('/api/auth/users'),
+  authCreateUser: (username: string, password: string, role: string) =>
+    request<AuthUser>('/api/auth/users', {
+      method: 'POST',
+      body: JSON.stringify({ username, password, role }),
+    }),
+  authUpdateUser: (
+    id: string,
+    body: { role?: string; active?: boolean; password?: string },
+  ) =>
+    request<AuthUser>(`/api/auth/users/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+  authDeleteUser: (id: string) =>
+    request<{ ok: boolean }>(`/api/auth/users/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }),
   system: (refresh = false) =>
     request<SystemInfo>(refresh ? '/api/system/refresh' : '/api/system'),
   models: () => request<ModelsPayload>('/api/models'),
@@ -312,6 +365,11 @@ export const api = {
   clusterStatus: () => request<ClusterStatus>('/api/cluster/status'),
   clusterTasks: (limit = 50) =>
     request<{ tasks: ClusterTask[] }>(`/api/cluster/tasks?limit=${limit}`),
+  clusterUpdateNodeConfig: (id: string, workConfig: Record<string, unknown>) =>
+    request<ClusterNode>(`/api/cluster/nodes/${encodeURIComponent(id)}/config`, {
+      method: 'PATCH',
+      body: JSON.stringify({ work_config: workConfig }),
+    }),
   url: (path: string) => `${API_BASE}${path}`,
 };
 

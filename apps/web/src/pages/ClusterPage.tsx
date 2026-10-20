@@ -42,6 +42,7 @@ export function ClusterPage() {
 
   const counts = useMemo(() => status?.task_counts ?? {}, [status]);
   const active = (counts.running ?? 0) + (counts.assigned ?? 0);
+  const mode = status?.mode ?? 'master_slave';
 
   return (
     <div className="page cluster-page">
@@ -96,6 +97,7 @@ export function ClusterPage() {
             <h2>Worker 节点</h2>
           </div>
           <span className="cluster-mono">
+            {mode === 'decentralized' ? '去中心模式' : '主从模式'} ·{' '}
             {status?.token_required ? 'Token 鉴权' : '无 Token'}
           </span>
         </div>
@@ -120,6 +122,24 @@ export function ClusterPage() {
                   <span>并发 {node.active_tasks}/{node.max_concurrency}</span>
                   <span>{node.version}</span>
                   <span>{node.last_heartbeat}</span>
+                </div>
+                <div className="cluster-node-actions">
+                  <Button
+                    appearance="subtle"
+                    size="small"
+                    onClick={() => {
+                      const enabled = node.work_config?.enabled !== false;
+                      void api
+                        .clusterUpdateNodeConfig(node.id, {
+                          ...node.work_config,
+                          enabled: !enabled,
+                        })
+                        .then(() => load(true))
+                        .catch((reason) => setError(errorMessage(reason)));
+                    }}
+                  >
+                    {node.work_config?.enabled === false ? '恢复调度' : '暂停调度'}
+                  </Button>
                 </div>
                 <div className="cluster-chips">
                   {node.capabilities.map((capability) => (
