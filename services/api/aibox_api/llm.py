@@ -29,6 +29,15 @@ from .runtime import RuntimeCapacityError, RuntimeManager
 
 logger = logging.getLogger("aibox.llm")
 
+EXTERNAL_PROVIDERS = {
+    "vllm": "vLLM",
+    "sglang": "SGLang",
+    "mlx": "MLX",
+    "tensorrt-llm": "TensorRT-LLM",
+    "lmstudio": "LM Studio",
+    "ollama": "Ollama",
+}
+
 
 class LLMUnavailable(RuntimeError):
     pass
@@ -60,6 +69,31 @@ class LLMEngine:
     def external_ready(self) -> bool:
         return bool(self.config.llm_base_url)
 
+    def _external_base_url(self, provider: str) -> str:
+        if provider == "vllm":
+            return self.config.vllm_base_url
+        if provider == "sglang":
+            return self.config.sglang_base_url
+        if provider == "mlx":
+            return self.config.mlx_base_url
+        if provider == "tensorrt-llm":
+            return self.config.tensorrt_llm_base_url
+        if provider == "lmstudio":
+            return self.config.lmstudio_base_url
+        if provider == "ollama":
+            return self.config.ollama_base_url
+        return self.config.llm_base_url
+
+    def _external_model(self, provider: str) -> str:
+        return {
+            "vllm": self.config.vllm_model,
+            "sglang": self.config.sglang_model,
+            "mlx": self.config.mlx_model,
+            "tensorrt-llm": self.config.tensorrt_llm_model,
+            "lmstudio": self.config.lmstudio_model,
+            "ollama": self.config.ollama_model,
+        }.get(provider, self.config.llm_model)
+
     def status(self) -> dict[str, Any]:
         installed = list_installed(self.config, "llm")
         installed_ids = {entry["id"] for entry in installed}
@@ -87,6 +121,21 @@ class LLMEngine:
                 "base_url": self.config.llm_base_url,
                 "models": external_models,
             },
+            "external_providers": [
+                {
+                    "id": key,
+                    "name": label,
+                    "base_url": self._external_base_url(key),
+                    "model": self._external_model(key),
+                    "configured": bool(self._external_base_url(key)),
+                }
+                for key, label in EXTERNAL_PROVIDERS.items()
+            ],
+            "distributed": {
+                "tensor_parallel_size": self.config.llm_tensor_parallel_size,
+                "pipeline_parallel_size": self.config.llm_pipeline_parallel_size,
+                "backend": self.config.llm_distributed_backend,
+            },
             "installed_models": [entry["id"] for entry in installed],
             "models": [
                 {
@@ -112,11 +161,11 @@ class LLMEngine:
         installed = {
             entry["id"]: entry for entry in list_installed(self.config, "llm")
         }
-        if provider == "openai":
-            model = raw or self.config.llm_model
+        if provider in EXTERNAL_PROVIDERS or provider == "openai":
+            model = raw or self._external_model(provider)
             if not model:
-                raise LLMUnavailable("外部 LLM 未指定模型，请设置 AIBOX_LLM_MODEL。")
-            return model, "openai"
+                raise LLMUnavailable(f"{provider} 未指定模型。")
+            return model, provider
         if provider == "demo":
             model = raw or (
                 self.config.settings().get("default_llm_model")
@@ -149,6 +198,10 @@ class LLMEngine:
             if not self.external_ready():
                 raise LLMUnavailable("AIBOX_LLM_BASE_URL 未配置。")
             return "openai"
+        if setting in EXTERNAL_PROVIDERS:
+            if not self._external_base_url(setting):
+                raise LLMUnavailable(f"{setting} Base URL 未配置。")
+            return setting
         if setting == "llama-cpp":
             if not self.llama_binary():
                 raise LLMUnavailable("找不到 llama-server，请设置 AIBOX_LLAMA_SERVER。")
@@ -252,7 +305,7 @@ class LLMEngine:
             self._ensure_server(model)
             base_url = f"http://127.0.0.1:{self._server_port}/v1"
         else:
-            base_url = self.config.llm_base_url
+            base_url = self._external_base_url(provider)
         body: dict[str, Any] = {
             "model": model,
             "messages": payload_messages,
@@ -272,7 +325,7 @@ class LLMEngine:
             with httpx.Client(timeout=600) as client:
                 response = client.post(
                     base_url + "/chat/completions",
-                    headers=self._headers(),
+                    headers=self._headers(provider),
                     json=body,
                 )
             if response.status_code >= 400:
@@ -292,7 +345,7 @@ class LLMEngine:
             with client.stream(
                 "POST",
                 base_url + "/chat/completions",
-                headers=self._headers(),
+                headers=self._headers(provider),
                 json={**body, "stream": True},
             ) as response:
                 if response.status_code >= 400:
@@ -448,7 +501,7 @@ class LLMEngine:
     def loaded_model_id(self) -> str | None:
         return self._server_model
 
-    def _headers(self) -> dict[str, str]:
+    def _headers(self, provider: str | None = None) -> dict[str, str]:
         headers = {"Content-Type": "application/json"}
         if self.config.llm_api_key:
             headers["Authorization"] = f"Bearer {self.config.llm_api_key}"

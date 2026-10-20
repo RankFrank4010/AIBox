@@ -162,7 +162,18 @@ def _coerce_settings(raw: dict[str, Any]) -> dict[str, Any]:
         )
     except (TypeError, ValueError):
         settings["image_guidance"] = 3.5
-    if settings["llm_provider"] not in {"auto", "llama-cpp", "openai", "demo"}:
+    if settings["llm_provider"] not in {
+        "auto",
+        "llama-cpp",
+        "openai",
+        "demo",
+        "vllm",
+        "sglang",
+        "mlx",
+        "tensorrt-llm",
+        "lmstudio",
+        "ollama",
+    }:
         settings["llm_provider"] = "auto"
     try:
         settings["llm_temperature"] = round(
@@ -361,6 +372,63 @@ class AppConfig:
     )
     llm_gpu_layers: int = field(
         default_factory=lambda: int(os.getenv("AIBOX_LLM_GPU_LAYERS", "99"))
+    )
+    vllm_base_url: str = field(
+        default_factory=lambda: os.getenv(
+            "AIBOX_VLLM_BASE_URL", "http://127.0.0.1:8000/v1"
+        ).rstrip("/")
+    )
+    vllm_model: str = field(
+        default_factory=lambda: os.getenv("AIBOX_VLLM_MODEL", "Qwen/Qwen3-8B")
+    )
+    sglang_base_url: str = field(
+        default_factory=lambda: os.getenv(
+            "AIBOX_SGLANG_BASE_URL", "http://127.0.0.1:30000/v1"
+        ).rstrip("/")
+    )
+    sglang_model: str = field(
+        default_factory=lambda: os.getenv("AIBOX_SGLANG_MODEL", "Qwen/Qwen3-8B")
+    )
+    mlx_base_url: str = field(
+        default_factory=lambda: os.getenv(
+            "AIBOX_MLX_BASE_URL", "http://127.0.0.1:8080/v1"
+        ).rstrip("/")
+    )
+    mlx_model: str = field(
+        default_factory=lambda: os.getenv("AIBOX_MLX_MODEL", "mlx-community/Qwen2.5-7B-Instruct-4bit")
+    )
+    tensorrt_llm_base_url: str = field(
+        default_factory=lambda: os.getenv(
+            "AIBOX_TENSORRT_LLM_BASE_URL", "http://127.0.0.1:8000/v1"
+        ).rstrip("/")
+    )
+    tensorrt_llm_model: str = field(
+        default_factory=lambda: os.getenv("AIBOX_TENSORRT_LLM_MODEL", "Qwen/Qwen3-8B")
+    )
+    lmstudio_base_url: str = field(
+        default_factory=lambda: os.getenv(
+            "AIBOX_LMSTUDIO_BASE_URL", "http://127.0.0.1:1234/v1"
+        ).rstrip("/")
+    )
+    lmstudio_model: str = field(
+        default_factory=lambda: os.getenv("AIBOX_LMSTUDIO_MODEL", "local-model")
+    )
+    ollama_base_url: str = field(
+        default_factory=lambda: os.getenv(
+            "AIBOX_OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1"
+        ).rstrip("/")
+    )
+    ollama_model: str = field(
+        default_factory=lambda: os.getenv("AIBOX_OLLAMA_MODEL", "qwen3:8b")
+    )
+    llm_tensor_parallel_size: int = field(
+        default_factory=lambda: int(os.getenv("AIBOX_LLM_TP_SIZE", "1"))
+    )
+    llm_pipeline_parallel_size: int = field(
+        default_factory=lambda: int(os.getenv("AIBOX_LLM_PP_SIZE", "1"))
+    )
+    llm_distributed_backend: str = field(
+        default_factory=lambda: os.getenv("AIBOX_LLM_DIST_BACKEND", "none")
     )
     demo_training: bool = field(
         default_factory=lambda: _env_bool("AIBOX_DEMO_TRAINING", False)

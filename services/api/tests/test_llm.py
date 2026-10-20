@@ -208,3 +208,23 @@ def test_external_openai_compatible_chat(tmp_path):
     finally:
         server.shutdown()
         server.server_close()
+
+def test_external_runtime_providers(tmp_path):
+    from aibox_api.llm import LLMEngine
+
+    config = AppConfig(
+        data_dir=tmp_path / "data",
+        mock_asr=True,
+        vllm_base_url="http://vllm.test/v1",
+        vllm_model="Qwen/Qwen3-8B",
+        llm_tensor_parallel_size=4,
+        llm_pipeline_parallel_size=2,
+    )
+    config.update_settings({"llm_provider": "vllm"})
+    engine = LLMEngine(config)
+    model, provider = engine.resolve_model(None)
+    assert provider == "vllm"
+    assert model == "Qwen/Qwen3-8B"
+    status = engine.status()
+    assert status["distributed"]["tensor_parallel_size"] == 4
+    assert any(item["id"] == "sglang" for item in status["external_providers"])
