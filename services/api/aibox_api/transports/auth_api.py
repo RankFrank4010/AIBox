@@ -93,7 +93,9 @@ def require_access(
     method = request.method.upper()
     role = str(user.get("role") or "viewer")
     required = "viewer" if method in {"GET", "HEAD", "OPTIONS"} else "operator"
-    if path.startswith("/api/auth/users") or path.startswith("/api/settings"):
+    if path.startswith("/api/auth/users"):
+        required = "admin"
+    elif path.startswith("/api/settings"):
         required = "admin" if method not in {"GET", "HEAD"} else "viewer"
     if path.endswith("/drain") or path.endswith("/cancel"):
         required = "operator"

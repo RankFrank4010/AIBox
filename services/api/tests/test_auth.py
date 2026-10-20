@@ -66,6 +66,7 @@ def test_bootstrap_login_and_viewer_permissions(tmp_path):
         ).status_code
         == 403
     )
+    assert client.get("/api/auth/users", headers=viewer_headers).status_code == 403
     assert client.get("/api/settings").status_code == 401
 
 
