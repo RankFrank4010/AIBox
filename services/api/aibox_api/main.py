@@ -27,6 +27,7 @@ from .catalog import (
     recommend_model_id,
     recommend_tts_model_id,
 )
+from .cluster import ClusterManager
 from .community import CommunityRegistry
 from .config import APP_NAME, APP_VERSION, AppConfig, get_config
 from .devices import DeviceScheduler
@@ -60,6 +61,7 @@ from .training import TrainingEngine, TrainingJobs
 from .training_store import TrainingStore
 from .translation import TranslationService
 from .translation_store import TranslationStore
+from .transports.cluster_api import create_cluster_router
 from .transports.community_api import create_community_router
 from .transports.grpc_service import start_grpc_server, stop_grpc_server
 from .transports.images_api import create_images_router, create_openai_images_router
@@ -96,6 +98,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     training_store = TrainingStore(cfg.database_path)
     downloads = DownloadManager(cfg)
     community = CommunityRegistry(cfg)
+    cluster = ClusterManager(cfg)
     runtime = RuntimeManager(cfg)
     scheduler = DeviceScheduler(cfg)
     engine: Any = WhisperEngine(cfg, runtime, community)
@@ -304,6 +307,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         )
     )
     app.include_router(create_community_router(cfg, community))
+    app.include_router(create_cluster_router(cfg, cluster))
     app.include_router(
         create_translation_router(translation_service, translation_store)
     )

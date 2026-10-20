@@ -36,6 +36,7 @@ CAPABILITIES: dict[str, Any] = {
     "compute_priority": True,
     "multi_device": True,
     "openai_compatible": True,
+    "cluster": True,
 }
 
 ENDPOINTS: list[dict[str, Any]] = [
@@ -137,6 +138,20 @@ ENDPOINTS: list[dict[str, Any]] = [
         "method": "WS",
         "path": "/ws/asr",
         "description": "Streaming microphone ASR.",
+    },
+    {
+        "id": "cluster_status",
+        "surface": "native",
+        "method": "GET",
+        "path": "/api/cluster/status",
+        "description": "Multi-node registry, load and task counts.",
+    },
+    {
+        "id": "cluster_task",
+        "surface": "native",
+        "method": "POST",
+        "path": "/api/cluster/tasks",
+        "description": "Dispatch a translation/OCR task to a worker node.",
     },
 ]
 

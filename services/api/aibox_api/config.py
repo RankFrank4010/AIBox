@@ -92,6 +92,10 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "ocr_openai_api_key": "",
     "ocr_openai_model": "gpt-4o-mini",
     "tesseract_command": "tesseract",
+    "cluster_enabled": False,
+    "cluster_token": "",
+    "cluster_node_ttl_seconds": 20,
+    "cluster_max_retries": 2,
     "language": "auto",
     "task": "transcribe",
     "device": "auto",
@@ -427,6 +431,18 @@ class AppConfig:
     )
     tesseract_command: str = field(
         default_factory=lambda: os.getenv("AIBOX_TESSERACT_COMMAND", "tesseract")
+    )
+    cluster_enabled: bool = field(
+        default_factory=lambda: _env_bool("AIBOX_CLUSTER_ENABLED", False)
+    )
+    cluster_token: str | None = field(
+        default_factory=lambda: os.getenv("AIBOX_CLUSTER_TOKEN") or None
+    )
+    cluster_node_ttl_seconds: int = field(
+        default_factory=lambda: int(os.getenv("AIBOX_CLUSTER_NODE_TTL", "20"))
+    )
+    cluster_max_retries: int = field(
+        default_factory=lambda: int(os.getenv("AIBOX_CLUSTER_MAX_RETRIES", "2"))
     )
     allow_adapter_commands: bool = field(
         default_factory=lambda: _env_bool("AIBOX_ALLOW_ADAPTER_COMMANDS", False)
