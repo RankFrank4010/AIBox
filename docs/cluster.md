@@ -172,6 +172,9 @@ curl -X POST http://aibox:8765/api/cluster/tasks \
 - 2 个并发翻译任务（各延迟 2 秒）分别落在两个 Worker；
 - OCR 任务可落到 Worker 并返回结果。
 
+四号服务器的 `1panel-network` 上也运行了协调器 `aibox` 与两个 Worker 容器
+`aibox-worker-1` / `aibox-worker-2`，并发任务分别落到两个节点。
+
 这验证了注册、心跳、能力过滤、最低负载选择、并发槽位、失败重试与任务持久化。
 真正的跨物理机部署只需把 Worker 的 `--url` 换成各机器可达地址，并共享协调器
 数据库与对象存储。
