@@ -81,6 +81,12 @@ class WorkerRuntime:
             "url": self.url,
             "capabilities": self.capabilities,
             "labels": self.labels,
+            "work_config": {
+                "enabled": True,
+                "capabilities": self.capabilities,
+                "max_concurrency": self.max_concurrency,
+                "labels": self.labels,
+            },
             "max_concurrency": self.max_concurrency,
             "version": "1.0",
         }

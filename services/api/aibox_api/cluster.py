@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS cluster_nodes (
     url TEXT NOT NULL,
     capabilities_json TEXT NOT NULL DEFAULT '[]',
     labels_json TEXT NOT NULL DEFAULT '{}',
+    work_config_json TEXT NOT NULL DEFAULT '{}',
     max_concurrency INTEGER NOT NULL DEFAULT 1,
     state TEXT NOT NULL DEFAULT 'online',
     version TEXT NOT NULL DEFAULT '1.0',
@@ -66,6 +67,7 @@ def _node_public(row: sqlite3.Row, active: int = 0) -> dict[str, Any]:
         "url": row["url"],
         "capabilities": json.loads(row["capabilities_json"] or "[]"),
         "labels": json.loads(row["labels_json"] or "{}"),
+        "work_config": json.loads(row["work_config_json"] or "{}"),
         "max_concurrency": row["max_concurrency"],
         "state": row["state"],
         "version": row["version"],
@@ -98,6 +100,14 @@ class ClusterManager:
     def _initialize(self) -> None:
         with self._lock, self._connect() as connection:
             connection.executescript(SCHEMA)
+            columns = {
+                row["name"]
+                for row in connection.execute("PRAGMA table_info(cluster_nodes)")
+            }
+            if "work_config_json" not in columns:
+                connection.execute(
+                    "ALTER TABLE cluster_nodes ADD COLUMN work_config_json TEXT NOT NULL DEFAULT '{}'"
+                )
 
     # ------------------------------------------------------------------ registry
     def register(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -114,19 +124,23 @@ class ClusterManager:
         labels = payload.get("labels") or {}
         if not isinstance(labels, dict):
             labels = {}
+        work_config = payload.get("work_config") or {}
+        if not isinstance(work_config, dict):
+            work_config = {}
         max_concurrency = max(1, min(64, int(payload.get("max_concurrency") or 1)))
         now = _now()
         with self._lock, self._connect() as connection:
             connection.execute(
                 """
                 INSERT INTO cluster_nodes (
-                    id, url, capabilities_json, labels_json, max_concurrency,
-                    state, version, registered_at, last_heartbeat
-                ) VALUES (?, ?, ?, ?, ?, 'online', ?, ?, ?)
+                    id, url, capabilities_json, labels_json, work_config_json,
+                    max_concurrency, state, version, registered_at, last_heartbeat
+                ) VALUES (?, ?, ?, ?, ?, ?, 'online', ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     url = excluded.url,
                     capabilities_json = excluded.capabilities_json,
                     labels_json = excluded.labels_json,
+                    work_config_json = excluded.work_config_json,
                     max_concurrency = excluded.max_concurrency,
                     state = 'online',
                     version = excluded.version,
@@ -137,6 +151,7 @@ class ClusterManager:
                     url,
                     json.dumps(capabilities, ensure_ascii=False),
                     json.dumps(labels, ensure_ascii=False),
+                    json.dumps(work_config, ensure_ascii=False),
                     max_concurrency,
                     str(payload.get("version") or "1.0"),
                     now,
@@ -161,6 +176,16 @@ class ClusterManager:
             cursor = connection.execute(
                 "UPDATE cluster_nodes SET state = 'draining' WHERE id = ?",
                 (node_id,),
+            )
+        if cursor.rowcount == 0:
+            raise ClusterError("节点不存在。")
+        return self.node(node_id) or {}
+
+    def update_config(self, node_id: str, work_config: dict[str, Any]) -> dict[str, Any]:
+        with self._lock, self._connect() as connection:
+            cursor = connection.execute(
+                "UPDATE cluster_nodes SET work_config_json = ? WHERE id = ?",
+                (json.dumps(work_config, ensure_ascii=False), node_id),
             )
         if cursor.rowcount == 0:
             raise ClusterError("节点不存在。")
@@ -211,6 +236,7 @@ class ClusterManager:
             ).fetchall()
         return {
             "enabled": self.config.cluster_enabled,
+            "mode": self.config.cluster_mode,
             "token_required": bool(self.config.cluster_token),
             "node_ttl_seconds": self.config.cluster_node_ttl_seconds,
             "max_retries": self.config.cluster_max_retries,
@@ -272,6 +298,7 @@ class ClusterManager:
             _node_public(row, active.get(row["id"], 0))
             for row in rows
             if kind in json.loads(row["capabilities_json"] or "[]")
+            and json.loads(row["work_config_json"] or "{}").get("enabled", True)
             and active.get(row["id"], 0) < row["max_concurrency"]
         ]
         candidates.sort(key=lambda item: (item["active_tasks"], item["last_heartbeat"]))

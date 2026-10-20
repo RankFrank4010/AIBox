@@ -430,6 +430,23 @@ class AppConfig:
     llm_distributed_backend: str = field(
         default_factory=lambda: os.getenv("AIBOX_LLM_DIST_BACKEND", "none")
     )
+    auth_enabled: bool = field(
+        default_factory=lambda: _env_bool("AIBOX_AUTH_ENABLED", False)
+    )
+    auth_mode: str = field(
+        default_factory=lambda: os.getenv("AIBOX_AUTH_MODE", "builtin")
+    )
+    auth_external_header: str = field(
+        default_factory=lambda: os.getenv("AIBOX_AUTH_EXTERNAL_HEADER", "X-Forwarded-User")
+    )
+    auth_external_roles_header: str = field(
+        default_factory=lambda: os.getenv(
+            "AIBOX_AUTH_EXTERNAL_ROLES_HEADER", "X-Forwarded-Roles"
+        )
+    )
+    auth_session_hours: int = field(
+        default_factory=lambda: int(os.getenv("AIBOX_AUTH_SESSION_HOURS", "12"))
+    )
     demo_training: bool = field(
         default_factory=lambda: _env_bool("AIBOX_DEMO_TRAINING", False)
     )
@@ -511,6 +528,9 @@ class AppConfig:
     )
     cluster_max_retries: int = field(
         default_factory=lambda: int(os.getenv("AIBOX_CLUSTER_MAX_RETRIES", "2"))
+    )
+    cluster_mode: str = field(
+        default_factory=lambda: os.getenv("AIBOX_CLUSTER_MODE", "master_slave")
     )
     allow_adapter_commands: bool = field(
         default_factory=lambda: _env_bool("AIBOX_ALLOW_ADAPTER_COMMANDS", False)

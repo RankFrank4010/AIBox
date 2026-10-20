@@ -16,8 +16,13 @@ class NodeRegistration(BaseModel):
     url: str
     capabilities: list[str] = Field(default_factory=list)
     labels: dict[str, Any] = Field(default_factory=dict)
+    work_config: dict[str, Any] = Field(default_factory=dict)
     max_concurrency: int = Field(default=1, ge=1, le=64)
     version: str = "1.0"
+
+
+class NodeConfigUpdate(BaseModel):
+    work_config: dict[str, Any] = Field(default_factory=dict)
 
 
 class ClusterTaskRequest(BaseModel):
@@ -60,6 +65,13 @@ def create_cluster_router(
         _require_token(config, request)
         try:
             return manager.heartbeat(node_id)
+        except ClusterError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @router.patch("/nodes/{node_id}/config")
+    def update_config(node_id: str, payload: NodeConfigUpdate) -> dict[str, Any]:
+        try:
+            return manager.update_config(node_id, payload.work_config)
         except ClusterError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 

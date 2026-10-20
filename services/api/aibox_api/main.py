@@ -19,6 +19,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from .asr import AsrPool, WhisperEngine, engine_available
+from .auth_store import AuthStore
 from .catalog import (
     get_model,
     model_catalog,
@@ -61,6 +62,7 @@ from .training import TrainingEngine, TrainingJobs
 from .training_store import TrainingStore
 from .translation import TranslationService
 from .translation_store import TranslationStore
+from .transports.auth_api import create_auth_router, require_access
 from .transports.cluster_api import create_cluster_router
 from .transports.community_api import create_community_router
 from .transports.grpc_service import start_grpc_server, stop_grpc_server
@@ -99,6 +101,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     downloads = DownloadManager(cfg)
     community = CommunityRegistry(cfg)
     cluster = ClusterManager(cfg)
+    auth_store = AuthStore(cfg)
     runtime = RuntimeManager(cfg)
     scheduler = DeviceScheduler(cfg)
     engine: Any = WhisperEngine(cfg, runtime, community)
@@ -308,11 +311,24 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     )
     app.include_router(create_community_router(cfg, community))
     app.include_router(create_cluster_router(cfg, cluster))
+    app.include_router(create_auth_router(cfg, auth_store))
     app.include_router(
         create_translation_router(translation_service, translation_store)
     )
     app.include_router(create_ocr_router(cfg, ocr_service, ocr_store))
     app.include_router(create_websocket_router(cfg, gateway))
+
+    @app.middleware("http")
+    async def auth_guard(request, call_next):
+        try:
+            require_access(cfg, auth_store, request, request.url.path)
+        except HTTPException as exc:
+            return JSONResponse(
+                {"detail": exc.detail},
+                status_code=exc.status_code,
+                headers={"X-AIBox-Protocol": PROTOCOL_VERSION},
+            )
+        return await call_next(request)
 
     @app.middleware("http")
     async def protocol_header(request, call_next):

@@ -98,3 +98,30 @@ def test_worker_runtime_executes_translation(tmp_path):
         )
     )
     assert result["translated"].startswith("[演示翻译")
+
+def test_worker_config_can_disable_scheduling(tmp_path):
+    def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"result": {"echo": "ok"}})
+
+    manager = make_manager(tmp_path, handler)
+    manager.register(
+        {
+            "id": "worker-off",
+            "url": "http://worker-off:9101",
+            "capabilities": ["translation"],
+            "max_concurrency": 2,
+            "work_config": {"enabled": False, "role": "ocr"},
+        }
+    )
+    node = manager.node("worker-off")
+    assert node["work_config"]["enabled"] is False
+    try:
+        manager.dispatch("translation", {"text": "Hello"})
+    except Exception as exc:
+        assert "没有可用" in str(exc)
+    else:
+        raise AssertionError("disabled worker must not be scheduled")
+
+    manager.update_config("worker-off", {"enabled": True})
+    task = manager.dispatch("translation", {"text": "Hello"})
+    assert task["status"] == "completed"
