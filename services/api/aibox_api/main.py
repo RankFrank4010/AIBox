@@ -46,6 +46,11 @@ from .models import (
 )
 from .ocr import OcrService
 from .ocr_store import OcrStore
+from .protocol import (
+    PROTOCOL_HEADER,
+    PROTOCOL_VERSION,
+    create_protocol_router,
+)
 from .runtime import RuntimeManager
 from .separation import SeparationEngine
 from .separation_jobs import SeparationJobs
@@ -275,6 +280,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     app.state.mrcp_server = None
     app.state.transport_status = {}
 
+    app.include_router(create_protocol_router())
     app.include_router(create_openai_router(cfg, gateway, llm_engine.model_list))
     app.include_router(create_openai_chat_router(cfg, llm_engine))
     app.include_router(create_llm_router(cfg, llm_engine))
@@ -303,6 +309,12 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     )
     app.include_router(create_ocr_router(cfg, ocr_service, ocr_store))
     app.include_router(create_websocket_router(cfg, gateway))
+
+    @app.middleware("http")
+    async def protocol_header(request, call_next):
+        response = await call_next(request)
+        response.headers.setdefault(PROTOCOL_HEADER, PROTOCOL_VERSION)
+        return response
 
     @app.exception_handler(ExternalServiceError)
     async def external_service_error_handler(
