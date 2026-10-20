@@ -7,7 +7,7 @@ import { AIBOXClient } from '@aibox/sdk';
 
 const client = new AIBOXClient({
   baseUrl: 'http://127.0.0.1:8765',
-  apiKey: process.env.AIBOX_API_TOKEN,
+  apiKey: '<AIBOX_TOKEN>',
 });
 
 console.log(await client.protocol());
