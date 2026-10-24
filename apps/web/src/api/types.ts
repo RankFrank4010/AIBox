@@ -143,6 +143,9 @@ export interface AppSettings {
   ocr_openai_api_key: string;
   ocr_openai_model: string;
   tesseract_command: string;
+  watermark_provider: string;
+  iopaint_url: string;
+  watermark_model: string;
   language: string;
   task: 'transcribe' | 'translate';
   device: 'auto' | 'cpu' | 'cuda' | 'npu' | 'metal';
@@ -1020,4 +1023,41 @@ export interface AuthStatus {
   mode: 'builtin' | 'external';
   needs_setup: boolean;
   user: AuthUser | null;
+}
+
+export interface WatermarkProvider {
+  id: string;
+  name: string;
+  available: boolean;
+}
+
+export interface WatermarkStatus {
+  demo: boolean;
+  providers: WatermarkProvider[];
+  ffmpeg: boolean;
+  iopaint_url: string;
+  model: string;
+  image_formats: string[];
+  video_formats: string[];
+}
+
+export interface WatermarkRegion {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface WatermarkRecord {
+  id: string;
+  kind: 'image' | 'video';
+  status: string;
+  provider: string;
+  filename: string;
+  progress: number;
+  error: string | null;
+  regions: WatermarkRegion[];
+  created_at: string;
+  updated_at: string;
+  output_url?: string;
 }

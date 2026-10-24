@@ -18,6 +18,7 @@ import { RoadmapPage } from './pages/RoadmapPage';
 import { ServicesPage } from './pages/ServicesPage';
 import { TtsPage } from './pages/TtsPage';
 import { ImagesPage } from './pages/ImagesPage';
+import { WatermarkPage } from './pages/WatermarkPage';
 import { SeparationsPage } from './pages/SeparationsPage';
 import { ChatPage } from './pages/ChatPage';
 import { TranslationPage } from './pages/TranslationPage';
@@ -123,6 +124,7 @@ export default function App() {
                 <Route path="ocr" element={<OcrPage />} />
                 <Route path="training" element={<TrainingPage />} />
                 <Route path="images" element={<ImagesPage />} />
+                <Route path="watermarks" element={<WatermarkPage />} />
                 <Route path="separations" element={<SeparationsPage />} />
                 <Route path="videos" element={<VideosPage />} />
                 <Route path="system" element={<SystemPage />} />

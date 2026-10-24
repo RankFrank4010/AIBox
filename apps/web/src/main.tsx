@@ -10,6 +10,7 @@ import './styles/training.css';
 import './styles/translation.css';
 import './styles/ocr.css';
 import './styles/cluster.css';
+import './styles/watermark.css';
 import './styles/auth.css';
 import './styles/chat.css';
 

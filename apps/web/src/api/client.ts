@@ -20,6 +20,8 @@ import type {
   ClusterStatus,
   ClusterTask,
   ClusterNode,
+  WatermarkStatus,
+  WatermarkRecord,
   AuthStatus,
   AuthUser,
   SeparationJob,
@@ -370,6 +372,16 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ work_config: workConfig }),
     }),
+  watermarkStatus: () => request<WatermarkStatus>('/api/watermarks/status'),
+  watermarkHistory: () => request<{ records: WatermarkRecord[] }>('/api/watermarks'),
+  runWatermarkImage: (form: FormData) =>
+    request<WatermarkRecord>('/api/watermarks/images', { method: 'POST', body: form }),
+  runWatermarkVideo: (form: FormData) =>
+    request<WatermarkRecord>('/api/watermarks/videos', { method: 'POST', body: form }),
+  watermarkRecord: (id: string) =>
+    request<WatermarkRecord>(`/api/watermarks/${encodeURIComponent(id)}`),
+  deleteWatermark: (id: string) =>
+    request<{ ok: boolean }>(`/api/watermarks/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   url: (path: string) => `${API_BASE}${path}`,
 };
 

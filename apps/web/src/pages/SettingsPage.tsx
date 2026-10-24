@@ -15,6 +15,7 @@ import {
   CheckmarkRegular,
   DeleteRegular,
   DocumentTextRegular,
+  EraserRegular,
   FolderOpenRegular,
   GaugeRegular,
   ImageRegular,
@@ -987,6 +988,52 @@ export function SettingsPage() {
                 </div>
               </>
             )}
+          </section>
+
+          <section className="panel settings-card">
+            <div className="settings-card-head">
+              <div className="settings-icon">
+                <EraserRegular />
+              </div>
+              <div>
+                <h2>AI 去水印</h2>
+                <p>配置 IOPaint / LaMa 服务；未连接时使用本地演示修复。</p>
+              </div>
+            </div>
+            <div className="settings-grid">
+              <label className="field">
+                <span className="field-label">默认修复服务</span>
+                <Select
+                  value={draft.watermark_provider}
+                  onChange={(_, data) => patch({ watermark_provider: data.value })}
+                >
+                  <option value="auto">自动选择</option>
+                  <option value="iopaint">IOPaint / LaMa</option>
+                  <option value="lama">Simple LaMa</option>
+                  <option value="demo">演示修复</option>
+                </Select>
+              </label>
+              <label className="field">
+                <span className="field-label">IOPaint URL</span>
+                <Input
+                  value={draft.iopaint_url}
+                  onChange={(_, data) => patch({ iopaint_url: data.value })}
+                  placeholder="http://127.0.0.1:8080"
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">修复模型</span>
+                <Input
+                  value={draft.watermark_model}
+                  onChange={(_, data) => patch({ watermark_model: data.value })}
+                  placeholder="lama"
+                />
+              </label>
+            </div>
+            <div className="inline-note">
+              视频逐帧修复需要 ffmpeg；IOPaint 推荐以独立容器/服务运行。演示修复不加载
+              AI 模型。
+            </div>
           </section>
 
           <section className="panel settings-card">
