@@ -156,6 +156,25 @@ curl -X POST http://aibox:8765/api/cluster/tasks \
 }
 ```
 
+## PostgreSQL / Redis
+
+控制面支持两种持久化/协调模式：
+
+| 模式 | 配置 | 用途 |
+| --- | --- | --- |
+| SQLite | `AIBOX_CLUSTER_BACKEND=sqlite` | 单机/验证 |
+| PostgreSQL | `AIBOX_CLUSTER_BACKEND=postgres` + `AIBOX_POSTGRES_DSN` | 多 coordinator 共享节点与任务 |
+| Redis lease | `AIBOX_REDIS_URL` | 跨 coordinator 的节点调度锁 |
+
+```text
+AIBOX_CLUSTER_BACKEND=postgres
+AIBOX_POSTGRES_DSN=postgresql://aibox:...@127.0.0.1:5432/aibox_cluster
+AIBOX_REDIS_URL=redis://:...@127.0.0.1:6379/0
+```
+
+已用四号服务器的 PostgreSQL 17 / Redis 7 验证：节点注册、心跳、任务完成、
+Redis lease 正常。AI 推理仍只在 Worker 物理机执行。
+
 ## Worker 独立工作配置
 
 每个节点注册时携带 `work_config`，协调器持久化，并支持管理端覆盖：

@@ -88,6 +88,7 @@ class ClusterManager:
         self.database_path = config.database_path
         self._lock = threading.RLock()
         self._transport = transport
+        self.lease = RedisLease(config.redis_url) if config.redis_url else None
         self._initialize()
 
     def _connect(self) -> sqlite3.Connection:
@@ -237,6 +238,8 @@ class ClusterManager:
         return {
             "enabled": self.config.cluster_enabled,
             "mode": self.config.cluster_mode,
+            "backend": self.config.cluster_backend,
+            "redis": self.lease.ping() if self.lease else None,
             "token_required": bool(self.config.cluster_token),
             "node_ttl_seconds": self.config.cluster_node_ttl_seconds,
             "max_retries": self.config.cluster_max_retries,
@@ -321,6 +324,14 @@ class ClusterManager:
         attempts = max(1, self.config.cluster_max_retries + 1)
         last_error = ""
         for index, node in enumerate(candidates[:attempts]):
+            lease_key = f"aibox:cluster:node:{node['id']}:dispatch"
+            lease_token = (
+                self.lease.acquire(lease_key, max(30, int(timeout) + 10))
+                if self.lease
+                else "local"
+            )
+            if not lease_token:
+                continue
             self._update_task(task_id, "running", node["id"], index + 1)
             headers = {"X-AIBox-Protocol": "1.0"}
             if self.config.cluster_token:
@@ -340,6 +351,9 @@ class ClusterManager:
             except (httpx.HTTPError, ValueError, OSError) as exc:
                 last_error = str(exc)
                 self._update_task(task_id, "failed", node["id"], index + 1, last_error)
+            finally:
+                if self.lease and lease_token:
+                    self.lease.release(lease_key, lease_token)
         self._finish_task(task_id, "failed", error=last_error or "all nodes failed")
         raise ClusterError(last_error or "所有集群节点均失败。")
 
@@ -378,3 +392,87 @@ class ClusterManager:
                     task_id,
                 ),
             )
+
+class RedisLease:
+    """Small Redis lease used to serialize dispatch across coordinators."""
+
+    def __init__(self, url: str) -> None:
+        import redis
+
+        self._client = redis.Redis.from_url(url, decode_responses=True)
+
+    def acquire(self, key: str, ttl: int) -> str | None:
+        token = uuid.uuid4().hex
+        try:
+            return token if self._client.set(key, token, nx=True, ex=ttl) else None
+        except Exception:  # noqa: BLE001
+            return None
+
+    def release(self, key: str, token: str) -> None:
+        try:
+            if self._client.get(key) == token:
+                self._client.delete(key)
+        except Exception:  # noqa: BLE001
+            pass
+
+    def ping(self) -> bool:
+        try:
+            return bool(self._client.ping())
+        except Exception:  # noqa: BLE001
+            return False
+
+
+class PgConnection:
+    """sqlite-like adapter over psycopg for the cluster SQL."""
+
+    def __init__(self, dsn: str) -> None:
+        import psycopg
+        from psycopg.rows import dict_row
+
+        self._connection = psycopg.connect(dsn, row_factory=dict_row)
+
+    def execute(self, sql: str, params: Any = ()) -> Any:
+        return self._connection.execute(sql.replace("?", "%s"), params)
+
+    def executescript(self, script: str) -> None:
+        for statement in script.split(";"):
+            if statement.strip():
+                self._connection.execute(statement)
+
+    def __enter__(self) -> PgConnection:
+        return self
+
+    def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
+        if exc_type:
+            self._connection.rollback()
+        else:
+            self._connection.commit()
+        self._connection.close()
+
+
+class PostgresClusterManager(ClusterManager):
+    def __init__(self, config: AppConfig, *, transport: Any = None) -> None:
+        if not config.postgres_dsn:
+            raise ClusterError("AIBOX_POSTGRES_DSN 未配置。")
+        super().__init__(config, transport=transport)
+
+    def _connect(self) -> PgConnection:
+        return PgConnection(str(self.config.postgres_dsn))
+
+    def _initialize(self) -> None:
+        with self._connect() as connection:
+            connection.executescript(SCHEMA)
+            row = connection.execute(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name = 'cluster_nodes' AND column_name = 'work_config_json'"
+            ).fetchone()
+            if not row:
+                connection.execute(
+                    "ALTER TABLE cluster_nodes ADD COLUMN work_config_json TEXT NOT NULL DEFAULT '{}'"
+                )
+
+
+def create_cluster_manager(config: AppConfig, *, transport: Any = None) -> ClusterManager:
+    if config.cluster_backend == "postgres":
+        return PostgresClusterManager(config, transport=transport)
+    return ClusterManager(config, transport=transport)

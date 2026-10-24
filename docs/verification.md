@@ -6,7 +6,7 @@
 
 ```text
 python -m ruff check services/api        → All checks passed
-python -m pytest services/api/tests -q   → 60 passed
+python -m pytest services/api/tests -q   → 60 passed, 1 optional skipped
 ```
 
 Windows 上测试进程偶发 `0xC0000005`（Python / 原生库退出阶段，堆栈落在 GC 或 pytest 源码读取），重跑即可通过；服务进程本身持续运行无异常。
@@ -258,6 +258,7 @@ pnpm --filter @aibox/desktop check
 - 本地 Windows Worker 通过 SSH 隧道注册到服务器 coordinator；
 - 服务器通过隧道向本地 Worker 下发任务并取回结果，验证跨物理机控制面/数据面分离；
 - 同机双 Worker 并发翻译任务分别落到两个节点；
+- PostgreSQL/Redis 后端：节点注册、心跳、任务完成与 Redis lease 通过可选集成测试；
 - 跨机张量并行仍需外置 vLLM/SGLang/TensorRT-LLM 建立 Ray/NCCL 集群；AIBox 当前负责拓扑配置和路由。
 - Worker `work_config.enabled=false` 时不再参与调度，PATCH 配置可恢复。
 

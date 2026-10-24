@@ -28,7 +28,7 @@ from .catalog import (
     recommend_model_id,
     recommend_tts_model_id,
 )
-from .cluster import ClusterManager
+from .cluster import create_cluster_manager
 from .community import CommunityRegistry
 from .config import APP_NAME, APP_VERSION, AppConfig, get_config
 from .devices import DeviceScheduler
@@ -100,7 +100,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     training_store = TrainingStore(cfg.database_path)
     downloads = DownloadManager(cfg)
     community = CommunityRegistry(cfg)
-    cluster = ClusterManager(cfg)
+    cluster = create_cluster_manager(cfg)
     auth_store = AuthStore(cfg)
     runtime = RuntimeManager(cfg)
     scheduler = DeviceScheduler(cfg)

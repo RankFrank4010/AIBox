@@ -17,7 +17,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from .cluster import ClusterManager
+from .cluster import create_cluster_manager
 from .config import APP_NAME, APP_VERSION, AppConfig, get_config
 from .protocol import PROTOCOL_HEADER, PROTOCOL_VERSION
 from .transports.cluster_api import create_cluster_router
@@ -25,7 +25,7 @@ from .transports.cluster_api import create_cluster_router
 
 def create_coordinator_app(config: AppConfig | None = None) -> FastAPI:
     cfg = config or get_config()
-    cluster = ClusterManager(cfg)
+    cluster = create_cluster_manager(cfg)
     app = FastAPI(
         title=f"{APP_NAME} Coordinator",
         version=APP_VERSION,

@@ -532,6 +532,15 @@ class AppConfig:
     cluster_mode: str = field(
         default_factory=lambda: os.getenv("AIBOX_CLUSTER_MODE", "master_slave")
     )
+    cluster_backend: str = field(
+        default_factory=lambda: os.getenv("AIBOX_CLUSTER_BACKEND", "sqlite")
+    )
+    postgres_dsn: str | None = field(
+        default_factory=lambda: os.getenv("AIBOX_POSTGRES_DSN") or None
+    )
+    redis_url: str | None = field(
+        default_factory=lambda: os.getenv("AIBOX_REDIS_URL") or None
+    )
     allow_adapter_commands: bool = field(
         default_factory=lambda: _env_bool("AIBOX_ALLOW_ADAPTER_COMMANDS", False)
     )
