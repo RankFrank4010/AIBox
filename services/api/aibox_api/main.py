@@ -76,11 +76,14 @@ from .transports.training_api import create_training_router
 from .transports.translation_api import create_translation_router
 from .transports.tts_api import create_openai_tts_router, create_tts_router
 from .transports.video_api import create_video_router
+from .transports.watermark_api import create_watermark_router
 from .transports.websocket_asr import create_websocket_router
 from .tts import TtsEngine
 from .video import VideoEngine
 from .video_jobs import VideoJobs
 from .video_store import VideoStore
+from .watermark import WatermarkService
+from .watermark_store import WatermarkJobs, WatermarkStore
 
 logging.basicConfig(
     level=os.getenv("AIBOX_LOG_LEVEL", "INFO").upper(),
@@ -124,6 +127,9 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
     translation_store = TranslationStore(cfg.database_path)
     ocr_service = OcrService(cfg)
     ocr_store = OcrStore(cfg.database_path)
+    watermark_service = WatermarkService(cfg)
+    watermark_store = WatermarkStore(cfg)
+    watermark_jobs = WatermarkJobs(cfg, watermark_service, watermark_store)
     jobs = TranscriptionJobs(
         cfg,
         store,
@@ -252,6 +258,7 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
             separation_jobs.shutdown()
             video_jobs.shutdown()
             training_jobs.shutdown()
+            watermark_jobs.shutdown()
             llm_engine.unload()
             tts_engine.unload()
             image_engine.unload()
@@ -316,6 +323,9 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         create_translation_router(translation_service, translation_store)
     )
     app.include_router(create_ocr_router(cfg, ocr_service, ocr_store))
+    app.include_router(
+        create_watermark_router(watermark_service, watermark_store, watermark_jobs)
+    )
     app.include_router(create_websocket_router(cfg, gateway))
 
     @app.middleware("http")

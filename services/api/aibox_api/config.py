@@ -59,6 +59,8 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "image_steps": 28,
     "image_guidance": 3.5,
     "default_llm_model": None,
+    "default_special_model": None,
+    "special_max_tokens": 4096,
     "llm_provider": "auto",
     "llm_temperature": 0.7,
     "llm_max_tokens": 1024,
@@ -92,6 +94,9 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "ocr_openai_api_key": "",
     "ocr_openai_model": "gpt-4o-mini",
     "tesseract_command": "tesseract",
+    "watermark_provider": "auto",
+    "iopaint_url": "http://127.0.0.1:8080",
+    "watermark_model": "lama",
     "cluster_enabled": False,
     "cluster_token": "",
     "cluster_node_ttl_seconds": 20,
@@ -517,6 +522,18 @@ class AppConfig:
     tesseract_command: str = field(
         default_factory=lambda: os.getenv("AIBOX_TESSERACT_COMMAND", "tesseract")
     )
+    demo_watermark: bool = field(
+        default_factory=lambda: _env_bool("AIBOX_DEMO_WATERMARK", False)
+    )
+    iopaint_url: str = field(
+        default_factory=lambda: os.getenv("AIBOX_IOPAINT_URL", "http://127.0.0.1:8080")
+    )
+    watermark_model: str = field(
+        default_factory=lambda: os.getenv("AIBOX_WATERMARK_MODEL", "lama")
+    )
+    ffmpeg_command: str = field(
+        default_factory=lambda: os.getenv("AIBOX_FFMPEG", "ffmpeg")
+    )
     cluster_enabled: bool = field(
         default_factory=lambda: _env_bool("AIBOX_CLUSTER_ENABLED", False)
     )
@@ -598,6 +615,7 @@ class AppConfig:
         self.video_outputs_dir = self.data_dir / "videos"
         self.training_dir = self.data_dir / "training"
         self.ocr_dir = self.data_dir / "ocr"
+        self.watermarks_dir = self.data_dir / "watermarks"
         self.training_datasets_dir = self.training_dir / "datasets"
         self.training_outputs_dir = self.training_dir / "runs"
         self.training_logs_dir = self.training_dir / "logs"
@@ -626,6 +644,7 @@ class AppConfig:
             self.training_outputs_dir,
             self.training_logs_dir,
             self.ocr_dir,
+            self.watermarks_dir,
             self.adapters_dir,
             self.uploads_dir,
             self.exports_dir,

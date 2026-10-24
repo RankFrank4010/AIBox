@@ -31,6 +31,7 @@ CAPABILITIES: dict[str, Any] = {
     "training": True,
     "translation": True,
     "ocr": True,
+    "watermark": True,
     "models": True,
     "community_adapters": True,
     "compute_priority": True,
@@ -131,6 +132,20 @@ ENDPOINTS: list[dict[str, Any]] = [
         "method": "POST",
         "path": "/api/ocr",
         "description": "Synchronous OCR, multipart image upload.",
+    },
+    {
+        "id": "watermark_image",
+        "surface": "native",
+        "method": "POST",
+        "path": "/api/watermarks/images",
+        "description": "Image watermark removal with region masks.",
+    },
+    {
+        "id": "watermark_video",
+        "surface": "native",
+        "method": "POST",
+        "path": "/api/watermarks/videos",
+        "description": "Frame-by-frame video watermark removal job.",
     },
     {
         "id": "websocket_asr",
