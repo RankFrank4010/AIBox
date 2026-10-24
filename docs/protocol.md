@@ -163,6 +163,13 @@ POST /api/videos
 POST /api/training/jobs
 ```
 
+### 去水印
+
+```http
+POST /api/watermarks/images
+POST /api/watermarks/videos
+```
+
 ### 集群
 
 ```http

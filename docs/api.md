@@ -361,6 +361,20 @@ DELETE /api/ocr/{id}
 
 `POST /api/ocr` multipart 字段：`file`、`provider`、`model`、`language`。支持 GLM-OCR、OpenAI 兼容视觉、Tesseract。详见 [图片文字识别](ocr.md)。
 
+## AI 去水印
+
+```http
+GET    /api/watermarks/status
+GET    /api/watermarks
+POST   /api/watermarks/images
+POST   /api/watermarks/videos
+GET    /api/watermarks/{id}
+GET    /api/watermarks/{id}/file
+DELETE /api/watermarks/{id}
+```
+
+详见 [AI 去水印](watermark.md)。
+
 ## 计算集群
 
 ```http

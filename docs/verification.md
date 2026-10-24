@@ -6,7 +6,7 @@
 
 ```text
 python -m ruff check services/api        → All checks passed
-python -m pytest services/api/tests -q   → 60 passed, 1 optional skipped
+python -m pytest services/api/tests -q   → 62 passed, 1 optional skipped
 ```
 
 Windows 上测试进程偶发 `0xC0000005`（Python / 原生库退出阶段，堆栈落在 GC 或 pytest 源码读取），重跑即可通过；服务进程本身持续运行无异常。
@@ -191,13 +191,13 @@ Whisper Small · NVIDIA CUDA · float16
 ```text
 pnpm --filter @aibox/web typecheck   → 通过
 pnpm --filter @aibox/web test        → 4 passed
-pnpm --filter @aibox/web build       → 通过（约 840 KB JS / 228 KB gzip）
+pnpm --filter @aibox/web build       → 通过（约 850 KB JS / 230 KB gzip）
 pnpm --filter @aibox/web build:desktop → 通过
 ```
 
 Playwright 页面检查：
 
-- 18 个桌面页面状态 + 15 个移动端页面：总览、模型库、社区适配、转写、转写结果（查询参数）、语音合成、语言模型、文本翻译、图片文字识别、模型微调、图像生成、视频生成、人声分离、硬件、计算集群、服务接入、路线图、设置；
+- 19 个桌面页面状态 + 16 个移动端页面：总览、模型库、社区适配、转写、转写结果（查询参数）、语音合成、语言模型、文本翻译、图片文字识别、模型微调、图像生成、视频生成、人声分离、硬件、计算集群、服务接入、路线图、设置；
 - 1440px 与 390px 两套视口；
 - `document.body.scrollWidth == innerWidth`，无水平溢出；
 - 0 个 console error / pageerror；
@@ -251,6 +251,13 @@ pnpm --filter @aibox/desktop check
 - 未登录访问受保护 API 返回 401；
 - 外置头模式：无身份头 401，带 `X-Forwarded-User` 后成功；
 - UI 登录页、创建管理员、登录后设置页账户管理均通过浏览器验证。
+
+## AI 去水印实测
+
+- 图片：框选区域、演示修复、结果图片、历史与删除通过；
+- 视频：ffmpeg 拆帧、逐帧修复、H.264 编码、音轨保留、任务轮询通过；
+- WebUI 去水印页面无 console error，图片/视频两个标签正常；
+- 协议能力已登记 watermark image/video。
 
 ## 多机集群实测
 

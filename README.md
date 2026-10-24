@@ -28,6 +28,7 @@ AIBox 把模型下载、硬件探测、推理后端和生成工作流放进同�
 - **模型微调管理**：数据集上传校验、QLoRA / LoRA / 全量微调任务、训练日志、取消与产物下载；真实训练通过外部命令或演示运行器。
 - **文本翻译**：支持 LibreTranslate / Argos、Index-Translate、腾讯混元 Hy-MT2 与 OpenAI 兼容翻译网关，保留本地历史。
 - **图片文字识别**：支持 GLM-OCR、OpenAI 兼容视觉与 Tesseract，识别结果和原图保存在本地。
+- **AI 去水印**：图片/视频框选水印区域，支持 IOPaint、Simple LaMa 与演示修复，视频保留音轨。
 - **统一协议与 SDK**：AIBOX Unified Protocol 1.0，提供 Python / TypeScript SDK、OpenAPI、能力发现、任务轮询与 SSE 流式封装。
 - **多机集群**：Worker 注册/心跳/能力标签/最低负载调度/失败重试；支持控制面与 AI 数据面分离的跨物理机部署，PostgreSQL/Redis 协调模式。
 - **账户与权限**：内置轻量登录、admin/operator/viewer 三级角色，支持可信头外置登录。
@@ -88,6 +89,10 @@ AIBox 把模型下载、硬件探测、推理后端和生成工作流放进同�
 | 图片文字识别 |
 | --- |
 | ![图片文字识别](screenshots/ocr.png) |
+
+| AI 去水印 |
+| --- |
+| ![AI 去水印](screenshots/watermark.png) |
 
 | 社区适配 |
 | --- |
@@ -425,6 +430,17 @@ Index-Translate 与混元默认走 OpenAI 兼容接口，也可以通过 NewAPI 
 
 识别结果和原图保存在本地。详见 [图片文字识别](docs/ocr.md)。
 
+### AI 去水印
+
+新增图片/视频去水印工作台：
+
+- 框选一个或多个水印区域；
+- IOPaint / LaMa / 演示修复；
+- 视频逐帧修复并保留原音轨；
+- 历史记录与结果下载。
+
+详见 [AI 去水印](docs/watermark.md)。
+
 ### 多机计算集群
 
 AIBOX Compute Fabric 提供：
@@ -574,6 +590,10 @@ ASR 与 TTS 可以同时驻留；当显存 / 内存预算不足时，运行时�
 | `AIBOX_GLM_BASE_URL` | 智谱 v4 | GLM-OCR Base URL |
 | `AIBOX_GLM_OCR_MODEL` | `glm-ocr` | GLM-OCR 模型名 |
 | `AIBOX_TESSERACT_COMMAND` | `tesseract` | Tesseract 命令 |
+| `AIBOX_DEMO_WATERMARK` | `0` | 去水印演示引擎 |
+| `AIBOX_IOPAINT_URL` | `http://127.0.0.1:8080` | IOPaint 服务 |
+| `AIBOX_WATERMARK_MODEL` | `lama` | IOPaint 模型 |
+| `AIBOX_FFMPEG` | `ffmpeg` | 视频处理 ffmpeg |
 | `AIBOX_CLUSTER_ENABLED` | `0` | 启用集群调度 |
 | `AIBOX_CLUSTER_TOKEN` | 空 | Worker 共享 Token |
 | `AIBOX_CLUSTER_NODE_TTL` | `20` | 节点心跳租约秒数 |
